@@ -50,6 +50,8 @@ All other runtime source files are shared between both browser packages.
 
 ## Build Instructions
 
+### Windows
+
 1. Extract the submitted source archive or clone the repository.
 2. Open Windows PowerShell in the project root directory.
 3. Run:
@@ -59,6 +61,19 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 No dependencies need to be installed before running this command.
+
+### macOS / Linux
+
+1. Clone the repository.
+2. Open a terminal in the project root directory.
+3. Run:
+
+```bash
+./build.sh
+```
+
+Requires `bash` and `python3` (preinstalled on macOS). `build.sh` mirrors the
+file lists in `build.ps1` — keep both in sync when adding runtime files.
 
 ## Build Output
 
