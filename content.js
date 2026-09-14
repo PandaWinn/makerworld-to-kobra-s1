@@ -47,6 +47,7 @@ function createButtonIconSvg(state) {
     autoFixOrganicVariableLayer: true,
     fixMultiPlatePositioning: true,
     forceDownloadFilename: false,
+    afterConvert:         'download',
     debugReport:           true,
     deepDebugReport:       false,
     smartProcessMerge:    true,
@@ -1917,6 +1918,73 @@ function createButtonIconSvg(state) {
             );
       }
 
+      async function tryKS1BridgeOpen(convertedBytes, filename) {
+        try {
+          const payload =
+            convertedBytes.buffer.slice(
+              convertedBytes.byteOffset,
+              convertedBytes.byteOffset +
+              convertedBytes.byteLength
+            );
+
+          const response =
+            await new Promise(
+              (resolve, reject) => {
+                chrome.runtime.sendMessage(
+                  {
+                    type:
+                      'ks1_open_in_slicer',
+
+                    filename,
+
+                    data:
+                      payload,
+                  },
+                  reply => {
+                    if (
+                      chrome.runtime.lastError
+                    ) {
+                      reject(
+                        new Error(
+                          chrome.runtime
+                            .lastError.message
+                        )
+                      );
+
+                      return;
+                    }
+
+                    resolve(
+                      reply || {
+                        ok:
+                          false,
+
+                        error:
+                          'Bridge returned no response',
+                      }
+                    );
+                  }
+                );
+              }
+            );
+
+          return response;
+        } catch (error) {
+          return {
+            ok:
+              false,
+
+            hostMissing:
+              true,
+
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error),
+          };
+        }
+      }
+
       async function runOutputDownloadAttempt(
         type,
         filename
@@ -2052,7 +2120,56 @@ function createButtonIconSvg(state) {
         }
       }
 
+      let openedViaBridge = false;
+
+      if (currentSettings.afterConvert === 'open') {
+        const bridgeOpenResult =
+          await tryKS1BridgeOpen(
+            converted,
+            outName
+          );
+
+        if (bridgeOpenResult?.ok === true) {
+          openedViaBridge = true;
+          downloadReport.success = true;
+          downloadReport.finalFilename =
+            downloadReport.originalFilename;
+          downloadReport.openedInSlicer = true;
+
+          downloadReport.attempts.push({
+            attempt: 1,
+            type: 'open-in-slicer',
+            filename: downloadReport.originalFilename,
+            result: 'ok',
+            error: null,
+            downloadId: null,
+            filenameForced: false,
+          });
+
+          diagnostics.setMetadata({
+            outputDownloadFinalFilename:
+              downloadReport.finalFilename,
+
+            outputDownloadOpenedInSlicer:
+              true,
+
+            outputDownloadAttempts:
+              downloadReport.attempts.map(
+                item => ({
+                  ...item,
+                })
+              ),
+          });
+        } else {
+          downloadReport.bridgeFallbackWarning =
+            bridgeOpenResult?.error ||
+            'Slicer bridge unavailable — downloaded instead. ' +
+            'Run native_host/install.sh to enable one-click open.';
+        }
+      }
+
       try {
+        if (!openedViaBridge) {
         const originalAttempt =
           await runOutputDownloadAttempt(
             'original',
@@ -2293,6 +2410,7 @@ function createButtonIconSvg(state) {
             originalAttempt.error,
             downloadReport
           );
+        }
         }
 
         diagnostics.setMetadata({

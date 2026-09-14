@@ -377,6 +377,30 @@
 </section>
 
 <section>
+  <h2>After Conversion</h2>
+
+  <div class="option-row">
+    <label>
+      <input type="radio" name="afterConvert" id="afterConvertDownload" value="download">
+      <span>Download the converted .3mf file</span>
+    </label>
+    <p class="hint">Default. Save the converted project and open it in Anycubic Slicer Next manually.</p>
+  </div>
+
+  <div class="option-row">
+    <label>
+      <input type="radio" name="afterConvert" id="afterConvertOpen" value="open">
+      <span>Open directly in Anycubic Slicer Next</span>
+    </label>
+    <p class="hint">Requires the one-click open bridge: run <code class="path-code">native_host/install.sh --chrome-id &lt;your-extension-id&gt;</code> once from the project checkout. If the bridge is missing, the extension downloads the file instead.</p>
+    <div style="margin-top:10px; margin-left:23px">
+      <button type="button" id="checkBridgeBtn">Check helper status</button>
+      <span id="bridgeStatus" style="margin-left:10px"></span>
+    </div>
+  </div>
+</section>
+
+<section>
   <h2>Conversion Settings</h2>
 
   <div class="option-row">

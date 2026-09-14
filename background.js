@@ -1,4 +1,19 @@
-// Background script — handles converted file downloads.
+// Background script — handles converted file downloads + Slicer Next bridge.
+//
+// One-click open support lives in ks1_native_bridge.js (pure protocol
+// helpers). Chrome loads it via importScripts below; Firefox lists it in
+// manifest.firefox.json background.scripts ahead of this file.
+
+try {
+  if (typeof importScripts === 'function') {
+    importScripts('ks1_native_bridge.js');
+  }
+} catch (error) {
+  console.warn(
+    '[KobraS1 Extension] bridge helpers unavailable:',
+    error
+  );
+}
 //
 // Chrome/Chromium:
 // Receives a Blob URL created by the content script.
@@ -262,7 +277,235 @@ function handleKS1DeterminingFilename(
   return true;
 }
 
+function ks1BridgeSend(port, obj, timeoutMs = 30000) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      reject(new Error('Bridge response timeout'));
+    }, timeoutMs);
+
+    const onMsg = response => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+
+      try {
+        port.onMessage.removeListener(onMsg);
+      } catch {
+        // Listener already gone.
+      }
+
+      resolve(response);
+    };
+
+    port.onMessage.addListener(onMsg);
+
+    try {
+      port.postMessage(obj);
+    } catch (error) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+
+      try {
+        port.onMessage.removeListener(onMsg);
+      } catch {
+        // Listener already gone.
+      }
+
+      reject(error instanceof Error ? error : new Error(String(error)));
+    }
+  });
+}
+
+async function handleKS1BridgeOpen(msg, sendResponse) {
+  let port = null;
+  let gotReply = false;
+
+  try {
+    if (
+      typeof KS1_BRIDGE_HOST === 'undefined' ||
+      typeof buildKS1OpenPlan !== 'function' ||
+      typeof encodeKS1Chunk !== 'function'
+    ) {
+      throw new Error('Bridge protocol helpers unavailable');
+    }
+
+    const data =
+      msg.data instanceof ArrayBuffer
+        ? new Uint8Array(msg.data)
+        : null;
+
+    if (!data || data.byteLength === 0) {
+      throw new Error('Empty model data');
+    }
+
+    const plan = buildKS1OpenPlan(msg.filename, data.byteLength);
+
+    try {
+      port = chrome.runtime.connectNative(KS1_BRIDGE_HOST);
+    } catch (connectError) {
+      sendResponse({
+        ok: false,
+        hostMissing: true,
+        error:
+          'Native bridge not installed. Run native_host/install.sh, or switch back to Download in the extension settings.',
+      });
+
+      return;
+    }
+
+    let disconnectMessage = '';
+
+    port.onDisconnect.addListener(() => {
+      try {
+        disconnectMessage =
+          chrome.runtime.lastError?.message || '';
+      } catch {
+        disconnectMessage = '';
+      }
+    });
+
+    const deadline = Date.now() + 120000;
+
+    const send = async obj => {
+      if (!port) throw new Error('Bridge disconnected');
+
+      const left = deadline - Date.now();
+
+      if (left <= 0) throw new Error('Bridge timed out');
+
+      const response = await ks1BridgeSend(
+        port,
+        obj,
+        Math.min(30000, left)
+      );
+
+      gotReply = true;
+
+      if (!response?.ok) {
+        const failure = new Error(
+          response?.error || 'Bridge error'
+        );
+
+        failure.bridgeResponse = response;
+
+        throw failure;
+      }
+
+      return response;
+    };
+
+    await send({
+      protocol: KS1_BRIDGE_PROTOCOL,
+      action: 'open-begin',
+      transfer_id: plan.transferId,
+      filename: plan.filename,
+      total_bytes: plan.totalBytes,
+      total_chunks: plan.totalChunks,
+    });
+
+    for (let index = 0; index < plan.totalChunks; index++) {
+      await send({
+        protocol: KS1_BRIDGE_PROTOCOL,
+        action: 'open-chunk',
+        transfer_id: plan.transferId,
+        index,
+        data_b64: encodeKS1Chunk(data, index),
+      });
+    }
+
+    const done = await send({
+      protocol: KS1_BRIDGE_PROTOCOL,
+      action: 'open-commit',
+      transfer_id: plan.transferId,
+    });
+
+    sendResponse({
+      ok: true,
+      path: done.path || null,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : String(error);
+
+    console.warn('[KobraS1 Extension] open in slicer failed:', message);
+
+    sendResponse({
+      ok: false,
+      hostMissing: !gotReply,
+      error: message,
+    });
+  } finally {
+    try {
+      port?.disconnect();
+    } catch {
+      // Already disconnected.
+    }
+  }
+}
+
+async function handleKS1BridgePing(sendResponse) {
+  let port = null;
+
+  try {
+    if (typeof KS1_BRIDGE_HOST === 'undefined') {
+      throw new Error('Bridge protocol helpers unavailable');
+    }
+
+    try {
+      port = chrome.runtime.connectNative(KS1_BRIDGE_HOST);
+    } catch (connectError) {
+      sendResponse({
+        ok: false,
+        hostMissing: true,
+        error: 'Native bridge not installed.',
+      });
+
+      return;
+    }
+
+    const response = await ks1BridgeSend(
+      port,
+      { protocol: KS1_BRIDGE_PROTOCOL, action: 'ping' },
+      10000
+    );
+
+    sendResponse({
+      ok: response?.ok === true,
+      hostMissing: false,
+      slicerFound: response?.slicer_found === true,
+      version: response?.version || null,
+    });
+  } catch (error) {
+    sendResponse({
+      ok: false,
+      hostMissing: true,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  } finally {
+    try {
+      port?.disconnect();
+    } catch {
+      // Already disconnected.
+    }
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg?.type === 'ks1_open_in_slicer') {
+    handleKS1BridgeOpen(msg, sendResponse);
+    return true;
+  }
+
+  if (msg?.type === 'ks1_bridge_ping') {
+    handleKS1BridgePing(sendResponse);
+    return true;
+  }
+
   if (msg?.type === 'ks1_download') {
     const forceFilename =
       msg.forceFilename === true;
