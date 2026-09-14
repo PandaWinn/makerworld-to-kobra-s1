@@ -1,6 +1,6 @@
-// Resolves Bambu process profile names to Snapmaker Orca/KS1 system preset names.
+// Resolves Bambu process profile names to Anycubic Slicer Next/KS1 system preset names.
 //
-// SnOrca only recognizes presets when print_settings_id/default_print_profile
+// Slicer Next only recognizes presets when print_settings_id/default_print_profile
 // exactly match the internal KS1 preset label.
 
 const KS1_PROCESS_PROFILE_MAP = {
@@ -36,6 +36,10 @@ const KS1_PROCESS_PROFILE_MAP = {
     id: '0.20mm-strength',
     mappedBase: '0.20 Strength',
   },
+  '0.20mm High Quality': {
+    id: '0.20mm-high-quality',
+    mappedBase: '0.20 High Quality',
+  },
   '0.24mm Draft': {
     id: '0.24mm-draft',
     mappedBase: '0.24 Draft',
@@ -52,7 +56,7 @@ const KS1_PROCESS_PROFILE_ID_MAP = Object.fromEntries(
     {
       sourceBase,
       ...row,
-      resolvedLabel: `${row.mappedBase} @Snapmaker KS1 (0.4 nozzle)`,
+      resolvedLabel: `${row.mappedBase} @Anycubic Kobra S1 0.4 nozzle`,
     }
   ])
 );
@@ -73,13 +77,13 @@ function parseBambuProcessProfileName(name) {
       mappedBase: mapped?.mappedBase || sourceBase,
       profileId: mapped?.id || '',
       resolvedLabel: mapped
-        ? `${mapped.mappedBase} @Snapmaker KS1 (0.4 nozzle)`
+        ? `${mapped.mappedBase} @Anycubic Kobra S1 0.4 nozzle`
         : '',
       knownMapping: !!mapped,
     };
   }
 
-  const ks1Match = value.match(/(\d+(?:\.\d+)?)\s+(.+?)\s+@Snapmaker KS1/i);
+  const ks1Match = value.match(/(\d+(?:\.\d+)?)\s+(.+?)\s+@Anycubic Kobra S1/i);
 
   if (ks1Match) {
     const mappedBase = `${ks1Match[1]} ${ks1Match[2].trim()}`;
@@ -190,7 +194,7 @@ function applyResolvedKS1ProcessPreset(combined, origSettings, resolvedProfile =
     loadedProfileSettings.print_settings_id ||
     loadedProfileSettings.default_print_profile ||
     resolvedProfile.resolved_ks1_profile ||
-    '0.20 Standard @Snapmaker KS1 (0.4 nozzle)';
+    '0.20 Standard @Anycubic Kobra S1 0.4 nozzle';
 
   combined.print_settings_id = resolvedLabel;
   combined.default_print_profile = resolvedLabel;

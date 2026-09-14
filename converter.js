@@ -1,4 +1,4 @@
-// Main conversion orchestrator for MakerWorld/Bambu 3MF → Snapmaker KS1 3MF.
+// Main conversion orchestrator for MakerWorld/Bambu 3MF → Anycubic Kobra S1 3MF.
 //
 // Keeps the high-level workflow in one place:
 // parse source project → build KS1 project → rewrite metadata → write output ZIP.
@@ -324,7 +324,7 @@ const KS1_STAGE_ERROR_DEFAULTS = Object.freeze({
       KS1_ERROR_CODES.PROJECT_BUILD_FAILED,
 
     userMessage:
-      'The Snapmaker KS1 project could not be created.',
+      'The Anycubic Kobra S1 project could not be created.',
 
     userAction:
       'Copy the error report and include it when reporting the problem.',
@@ -1406,7 +1406,7 @@ async function convertToKS1(inputBuffer, opts = {}) {
     targetSlicer:
       resolvedOptions.orcaCompatibility === true
         ? 'OrcaSlicer'
-        : 'Snapmaker Orca',
+        : 'Anycubic Slicer Next',
 
     converterOptions: {
       printProfileMode:

@@ -109,7 +109,7 @@ async function loadCustomPrinterProfiles() {
     [KS1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY]: {},
   });
 
-  // Existing installations keep using the old key for Snapmaker Orca.
+  // Existing installations keep using the old key for Anycubic Slicer Next.
   customPrinterProfiles =
     stored[KS1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY] || {};
 

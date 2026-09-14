@@ -1,4 +1,4 @@
-// Browser-neutral helper logic for SnOrca/Snapmaker KS1 custom printer profiles.
+// Browser-neutral helper logic for Slicer Next/Anycubic Kobra S1 custom printer profiles.
 // No chrome.* API usage here on purpose.
 
 const KS1_CUSTOM_PRINTER_STANDARD_ID = '__standard_ks1_printer_profile__';
@@ -104,7 +104,7 @@ function normalizeCustomPrinterProfileJson(json, sourceFileName = '') {
 
     overrides,
 
-    // Keep the raw imported file for later diagnostics and future SnOrca changes.
+    // Keep the raw imported file for later diagnostics and future Slicer Next changes.
     // The converter uses "overrides"; this is only reference/debug data.
     original: JSON.parse(JSON.stringify(json)),
   };
@@ -178,7 +178,7 @@ function applyCustomPrinterProfileToKS1Settings(settings, customPrinterProfile, 
   const inheritedFrom =
     customPrinterProfile.inheritedFrom ||
     settings.printer_settings_id ||
-    'Snapmaker KS1 (0.4 nozzle)';
+    'Anycubic Kobra S1 0.4 nozzle';
 
   const overrides = customPrinterProfile.overrides || {};
   const overrideKeys = Object.keys(overrides).filter(Boolean);
@@ -242,7 +242,7 @@ const KS1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY =
   'ks1OrcaCustomPrinterProfiles';
 
 const KS1_ORCA_STANDARD_PRINTER_ID =
-  'Snapmaker KS1 (0.4 nozzle)';
+  'Anycubic Kobra S1 0.4 nozzle';
 
 // Exact printer override list confirmed by the successful native-Orca
 // 12-extruder and 5-extruder tests.

@@ -310,7 +310,7 @@ function applyFinalKS1FilamentPass(
     'filament_nozzle_map',
     'filament_multi_colour',
 
-    // Bambu/Slicer metadata that SnOrca does not keep in its own rewritten KS1 reference file.
+    // Bambu/Slicer metadata that Slicer Next does not keep in its own rewritten KS1 reference file.
     'filament_adhesiveness_category',
     'filament_change_length',
     'filament_change_length_nc',
@@ -502,7 +502,7 @@ function applyFinalKS1FilamentPass(
   // Preserve original per-slot filament diffs when present.
   // If the source has no filament-specific diff but the filament is kept
   // as a Project Inside preset, synthesize the minimal filament diff so
-  // SnOrca continues to treat the slot as a project filament instead of
+  // Slicer Next continues to treat the slot as a project filament instead of
   // falling back to a system preset.
   for (let i = 0; i < targetFilamentCount; i++) {
     const sourceDiff = getFilamentDiffForSlot(origSettings, i);

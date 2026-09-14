@@ -1,4 +1,4 @@
-// MakerWorld → Snapmaker KS1 content script
+// MakerWorld → Anycubic Kobra S1 content script
 // Conversion is handled entirely in-browser via converter.js + JSZip (no external service needed).
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
@@ -104,7 +104,7 @@ function createButtonIconSvg(state) {
           chrome.storage.sync.get(defaults, (result) => {
             if (chrome.runtime?.lastError) {
               console.warn(
-                '[KS1 Extension] sync storage read failed, using defaults:',
+                '[KobraS1 Extension] sync storage read failed, using defaults:',
                 chrome.runtime.lastError.message
               );
               resolve({ ...defaults });
@@ -117,13 +117,13 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[KS1 Extension] sync storage read failed, using defaults:',
+        '[KobraS1 Extension] sync storage read failed, using defaults:',
         error
       );
     }
 
     console.warn(
-      '[KS1 Extension] extension sync storage unavailable, using defaults'
+      '[KobraS1 Extension] extension sync storage unavailable, using defaults'
     );
 
     return { ...defaults };
@@ -155,7 +155,7 @@ function createButtonIconSvg(state) {
                   chrome.runtime?.lastError
                 ) {
                   console.warn(
-                    '[KS1 Extension] sync storage write failed:',
+                    '[KobraS1 Extension] sync storage write failed:',
                     chrome.runtime.lastError.message
                   );
 
@@ -171,7 +171,7 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[KS1 Extension] sync storage write failed:',
+        '[KobraS1 Extension] sync storage write failed:',
         error
       );
     }
@@ -312,7 +312,7 @@ function createButtonIconSvg(state) {
 
     return (
       truncatedBase ||
-      'model-KS1'
+      'model-KobraS1'
     ) + extension;
   }
 
@@ -385,7 +385,7 @@ function createButtonIconSvg(state) {
       fallback === '..'
     ) {
       fallback =
-        'model-KS1.3mf';
+        'model-KobraS1.3mf';
     }
 
     const extensionMatch =
@@ -426,7 +426,7 @@ function createButtonIconSvg(state) {
       fallback === '.3mf'
     ) {
       fallback =
-        'model-KS1.3mf';
+        'model-KobraS1.3mf';
     }
 
     return {
@@ -508,7 +508,7 @@ function createButtonIconSvg(state) {
       }
     } catch (reportError) {
       console.warn(
-        '[KS1 Extension] Could not log output download report:',
+        '[KobraS1 Extension] Could not log output download report:',
         reportError
       );
     }
@@ -532,7 +532,7 @@ function createButtonIconSvg(state) {
           chrome.storage.local.get(defaults, (result) => {
             if (chrome.runtime?.lastError) {
               console.warn(
-                '[KS1 Extension] local storage read failed, using defaults:',
+                '[KobraS1 Extension] local storage read failed, using defaults:',
                 chrome.runtime.lastError.message
               );
               resolve({ ...defaults });
@@ -545,13 +545,13 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[KS1 Extension] local storage read failed, using defaults:',
+        '[KobraS1 Extension] local storage read failed, using defaults:',
         error
       );
     }
 
     console.warn(
-      '[KS1 Extension] extension local storage unavailable, using defaults'
+      '[KobraS1 Extension] extension local storage unavailable, using defaults'
     );
 
     return { ...defaults };
@@ -921,7 +921,7 @@ function createButtonIconSvg(state) {
 
     const buttonLabel = document.createElement('span');
     buttonLabel.className = 'convert-button__label';
-    buttonLabel.textContent = 'Convert to Snapmaker KS1';
+    buttonLabel.textContent = 'Convert to Anycubic Kobra S1';
 
     content.append(icon, buttonLabel);
     label.replaceChildren(progress, content);
@@ -946,7 +946,7 @@ function createButtonIconSvg(state) {
           ? 'KS1 profile ready'
           : state === 'error'
             ? 'Conversion failed'
-            : 'Convert to Snapmaker KS1';
+            : 'Convert to Anycubic Kobra S1';
 
     const expectedClassPresent =
       state === 'converting'
@@ -1031,7 +1031,7 @@ function createButtonIconSvg(state) {
       default:
         if (labelEl) {
           labelEl.textContent =
-            'Convert to Snapmaker KS1';
+            'Convert to Anycubic Kobra S1';
         }
     }
 
@@ -1583,7 +1583,7 @@ function createButtonIconSvg(state) {
         targetSlicer:
           useOrcaCompatibility
             ? 'OrcaSlicer'
-            : 'Snapmaker Orca',
+            : 'Anycubic Slicer Next',
 
         selectedCustomPrinterProfileId,
 
@@ -1660,7 +1660,7 @@ function createButtonIconSvg(state) {
             true;
 
           console.warn(
-            '[KS1 Extension] Selected custom printer profile was not found in local storage:',
+            '[KobraS1 Extension] Selected custom printer profile was not found in local storage:',
             selectedCustomPrinterProfileId
           );
         }
@@ -1718,7 +1718,7 @@ function createButtonIconSvg(state) {
         ).replace(/\.3mf$/i, '');
 
       const outName =
-        baseName + '-KS1.3mf';
+        baseName + '-KobraS1.3mf';
 
       const filenameFallback =
         createKS1DownloadFilenameFallback(
@@ -2411,7 +2411,7 @@ function createButtonIconSvg(state) {
           '';
 
         console.warn(
-          '[KS1 Extension] Could not build the copy-ready error report:',
+          '[KobraS1 Extension] Could not build the copy-ready error report:',
           reportError
         );
       }
@@ -2431,7 +2431,7 @@ function createButtonIconSvg(state) {
         );
       } catch (dropdownError) {
         console.warn(
-          '[KS1 Extension] Could not display the error dropdown:',
+          '[KobraS1 Extension] Could not display the error dropdown:',
           dropdownError
         );
       }
@@ -3011,7 +3011,7 @@ function createButtonIconSvg(state) {
         );
     } catch (error) {
       console.warn(
-        '[KS1 Extension] Could not read MakerWorld action preference:',
+        '[KobraS1 Extension] Could not read MakerWorld action preference:',
         error
       );
     }
@@ -3038,7 +3038,7 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[KS1 Extension] Could not restore MakerWorld action preference:',
+        '[KobraS1 Extension] Could not restore MakerWorld action preference:',
         error
       );
     }
@@ -3467,7 +3467,7 @@ function createButtonIconSvg(state) {
         await openMakerWorldDropdown(btn);
     } catch (openError) {
       console.warn(
-        '[KS1 Extension] Could not open error dropdown:',
+        '[KobraS1 Extension] Could not open error dropdown:',
         openError
       );
 
@@ -3483,7 +3483,7 @@ function createButtonIconSvg(state) {
       nativeEntries.length < 2
     ) {
       console.warn(
-        '[KS1 Extension] MakerWorld dropdown entries could not be identified.'
+        '[KobraS1 Extension] MakerWorld dropdown entries could not be identified.'
       );
 
       return;
@@ -3502,7 +3502,7 @@ function createButtonIconSvg(state) {
       )
     ) {
       console.warn(
-        '[KS1 Extension] MakerWorld dropdown menu container could not be identified.'
+        '[KobraS1 Extension] MakerWorld dropdown menu container could not be identified.'
       );
 
       return;
@@ -3812,7 +3812,7 @@ function createButtonIconSvg(state) {
       }
 
       console.log(
-        '[KS1 Extension] clicking:',
+        '[KobraS1 Extension] clicking:',
         item.textContent
           .trim()
           .slice(0, 40)
@@ -3894,7 +3894,7 @@ function createButtonIconSvg(state) {
   // mutation.
 
   const KS1_WINDOW_MESSAGE_SOURCE =
-    'makerworld-to-snapmaker-u1';
+    'makerworld-to-kobra-s1';
 
   const KS1_UI_ADAPTER_VERSION =
     2;
@@ -4366,7 +4366,7 @@ function createButtonIconSvg(state) {
 
     const title =
       [
-        '[KS1 Extension] MakerWorld UI Integration',
+        '[KobraS1 Extension] MakerWorld UI Integration',
         `Adapter v${report.adapterVersion}`,
         report.summary.code,
       ].join(' · ');
@@ -4453,7 +4453,7 @@ function createButtonIconSvg(state) {
     );
   } catch (error) {
     console.warn(
-      '[KS1 Extension] Could not watch Debug Report setting changes:',
+      '[KobraS1 Extension] Could not watch Debug Report setting changes:',
       error
     );
   }
@@ -5381,7 +5381,7 @@ function createButtonIconSvg(state) {
         '1';
 
       inner.textContent =
-        'Snapmaker KS1';
+        'Anycubic Kobra S1';
 
       outer.appendChild(
         inner
@@ -5828,7 +5828,7 @@ function createButtonIconSvg(state) {
 
     if (existingKS1Slides.length > 1) {
       console.warn(
-        '[KS1 Extension] Multiple Snapmaker KS1 printer entries detected in the active printer wrapper.'
+        '[KobraS1 Extension] Multiple Anycubic Kobra S1 printer entries detected in the active printer wrapper.'
       );
     }
 

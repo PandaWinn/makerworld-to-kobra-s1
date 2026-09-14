@@ -1,4 +1,4 @@
-// MakerWorld → Snapmaker KS1 conversion error report.
+// MakerWorld → Anycubic Kobra S1 conversion error report.
 //
 // This module contains only presentation and report formatting.
 //
@@ -289,7 +289,7 @@ function buildKS1ErrorReportText(
     );
 
   const lines = [
-    'MakerWorld to Snapmaker KS1 — Error Report',
+    'MakerWorld to Anycubic Kobra S1 — Error Report',
     '',
     `Extension version: ${report.environment.converterVersion}`,
     `Browser: ${report.environment.browser}`,
@@ -503,7 +503,7 @@ function logKS1ConversionError(
     report.summary.code;
 
   console.error(
-    `[KS1 Extension] Conversion failed · ${code}`
+    `[KobraS1 Extension] Conversion failed · ${code}`
   );
 
   console.error(
@@ -512,7 +512,7 @@ function logKS1ConversionError(
 
   if (report.summary.userAction) {
     console.info(
-      `[KS1 Extension] Suggested action: ${report.summary.userAction}`
+      `[KobraS1 Extension] Suggested action: ${report.summary.userAction}`
     );
   }
 

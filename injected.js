@@ -439,7 +439,7 @@ XMLHttpRequest.prototype.send =
   };
 
 const KS1_WINDOW_MESSAGE_SOURCE =
-  'makerworld-to-snapmaker-u1';
+  'makerworld-to-kobra-s1';
 
 function sendKS1MainWorldReady() {
   window.postMessage(

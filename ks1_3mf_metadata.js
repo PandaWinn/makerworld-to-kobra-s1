@@ -26,7 +26,7 @@ async function rewriteSliceInfoConfig(
 
   sliceXml = sliceXml.replace(
     /key="printer_model_id"\s+value="[^"]*"/g,
-    'key="printer_model_id" value="Snapmaker KS1"'
+    'key="printer_model_id" value="Anycubic Kobra S1"'
   );
 
   const doc = parseXml(sliceXml);
@@ -329,7 +329,7 @@ function createMultiPlatePositioningReport(
             String(
               project?.ks1?.settings?.printer_model ||
               project?.ks1?.settings?.printer_settings_id ||
-              'Snapmaker KS1'
+              'Anycubic Kobra S1'
             ),
 
           minX: roundMultiPlateNumber(targetArea.minX),
@@ -399,7 +399,7 @@ function addMultiPlateCompatibilityAction(
     type: 'rewrite-model-transforms',
 
     reason:
-      'Multi-plate object positions were adjusted from the source printer grid to the Snapmaker KS1 grid.',
+      'Multi-plate object positions were adjusted from the source printer grid to the Anycubic Kobra S1 grid.',
 
     plateCount: report.plateCount,
     adjustedPlateCount: report.adjustedPlateCount,

@@ -1,8 +1,8 @@
-// KS1 / Snapmaker Orca compatibility rules
+// KS1 / Anycubic Slicer Next compatibility rules
 
 // Central compatibility layer.
 //
-// Detects known Bambu → Snapmaker Orca incompatibilities and either
+// Detects known Bambu → Anycubic Slicer Next incompatibilities and either
 // reports them or rewrites the affected settings.
 
 function analyzeKS1Compatibility(settings, options = {}) {
@@ -45,7 +45,7 @@ function analyzeKS1Compatibility(settings, options = {}) {
       });
     } else {
       warnings.push(
-        'Variable layer height is not supported with Tree Default/Organic support style in SnOrca/KS1.'
+        'Variable layer height is not supported with Tree Default/Organic support style in Slicer Next/KS1.'
       );
 
       warnings.push(
@@ -67,7 +67,7 @@ function analyzeKS1Compatibility(settings, options = {}) {
       key: 'raft_first_layer_expansion',
       value: '2',
       reason:
-        'Negative raft first-layer expansion is not valid for the Snapmaker KS1 profile and was reset to the native KS1 default.'
+        'Negative raft first-layer expansion is not valid for the Anycubic Kobra S1 profile and was reset to the native KS1 default.'
     });
   }
 

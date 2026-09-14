@@ -180,7 +180,7 @@ function handleKS1DeterminingFilename(
         chrome.runtime.lastError
       ) {
         console.warn(
-          '[KS1 Extension] forced filename state read failed:',
+          '[KobraS1 Extension] forced filename state read failed:',
           chrome.runtime.lastError.message
         );
 
@@ -228,7 +228,7 @@ function handleKS1DeterminingFilename(
 
       if (!expectedFilename) {
         console.warn(
-          '[KS1 Extension] forced filename is empty'
+          '[KobraS1 Extension] forced filename is empty'
         );
 
         suggest();
@@ -292,7 +292,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 .lastError.message;
 
             console.warn(
-              '[KS1 Extension] download failed:',
+              '[KobraS1 Extension] download failed:',
               error
             );
 
@@ -376,7 +376,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               );
 
               console.warn(
-                '[KS1 Extension] download failed:',
+                '[KobraS1 Extension] download failed:',
                 error
               );
 
@@ -411,7 +411,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               .lastError.message;
 
           console.warn(
-            '[KS1 Extension] forced filename state could not be stored:',
+            '[KobraS1 Extension] forced filename state could not be stored:',
             storageError
           );
 
@@ -523,7 +523,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             : String(error);
 
         console.warn(
-          '[KS1 Extension] Firefox download failed:',
+          '[KobraS1 Extension] Firefox download failed:',
           message
         );
 

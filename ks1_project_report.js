@@ -20,7 +20,7 @@ function logKS1ProjectReport(project) {
   const targetSlicer =
     orcaCompatibilityEnabled
       ? 'OrcaSlicer'
-      : 'Snapmaker Orca';
+      : 'Anycubic Slicer Next';
 
   const multiPlatePositioning =
     project.analysis?.multiPlatePositioning || null;

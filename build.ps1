@@ -26,7 +26,7 @@ if ($chromeManifest.version -ne $firefoxManifest.version) {
 
 $version = $chromeManifest.version
 
-Write-Host "Building MakerWorld to Snapmaker U1 v$version..."
+Write-Host "Building MakerWorld to Anycubic Kobra S1 v$version..."
 
 # Always recreate dist from scratch so no obsolete files survive.
 if (Test-Path $distDir) {
@@ -162,9 +162,9 @@ foreach ($directory in $sourceDirectories) {
     Copy-Item $sourcePath $sourceDir -Recurse
 }
 
-$chromeZip = Join-Path $distDir "makerworld-to-snapmaker-u1-chrome-v$version.zip"
-$firefoxZip = Join-Path $distDir "makerworld-to-snapmaker-u1-firefox-v$version.zip"
-$sourceZip = Join-Path $distDir "makerworld-to-snapmaker-u1-source-v$version.zip"
+$chromeZip = Join-Path $distDir "makerworld-to-kobra-s1-chrome-v$version.zip"
+$firefoxZip = Join-Path $distDir "makerworld-to-kobra-s1-firefox-v$version.zip"
+$sourceZip = Join-Path $distDir "makerworld-to-kobra-s1-source-v$version.zip"
 
 # Create standards-compliant ZIP archives with forward slashes in entry names.
 # PowerShell's Compress-Archive may store Windows backslashes, which AMO rejects.

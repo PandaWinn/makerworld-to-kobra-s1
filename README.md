@@ -1,15 +1,15 @@
-![MakerWorld to Snapmaker U1](screenshots/logo.png)
+![MakerWorld to Anycubic Kobra S1](screenshots/logo.png)
 
-# MakerWorld to Snapmaker U1
+# MakerWorld to Anycubic Kobra S1
 
-Convert MakerWorld print profiles into native Snapmaker U1 projects with a single click.
+Convert MakerWorld print profiles into native Anycubic Kobra S1 projects with a single click.
 
-MakerWorld to Snapmaker U1 is a browser extension for Chrome, Chromium-based browsers and Firefox. It integrates directly into MakerWorld and adds a dedicated **"Convert to Snapmaker U1"** button.
+MakerWorld to Anycubic Kobra S1 is a browser extension for Chrome, Chromium-based browsers and Firefox. It integrates directly into MakerWorld and adds a dedicated **"Convert to Anycubic Kobra S1"** button.
 
 
-Instead of downloading a project, uploading it to an external converter and adjusting settings manually, simply click **Convert to Snapmaker U1**, open the generated project in **Snapmaker Orca** and start printing.
+Instead of downloading a project, uploading it to an external converter and adjusting settings manually, simply click **Convert to Anycubic Kobra S1**, open the generated project in **Anycubic Slicer Next** and start printing.
 
-The converter preserves the creator's original print settings whenever possible and automatically applies only the changes required for Snapmaker Orca compatibility.
+The converter preserves the creator's original print settings whenever possible and automatically applies only the changes required for Anycubic Slicer Next compatibility.
 
 All conversion happens locally inside your browser.
 
@@ -24,9 +24,9 @@ All conversion happens locally inside your browser.
 
 1. Open a MakerWorld model.
 2. Select the desired print profile.
-3. Select **Snapmaker U1** in the printer list to replace the standard **Download 3MF** button with **Convert to Snapmaker U1**.
-4. Click **Convert to Snapmaker U1**.
-5. Open the generated `.3mf` project in Snapmaker Orca.
+3. Select **Anycubic Kobra S1** in the printer list to replace the standard **Download 3MF** button with **Convert to Anycubic Kobra S1**.
+4. Click **Convert to Anycubic Kobra S1**.
+5. Open the generated `.3mf` project in Anycubic Slicer Next.
 6. Review the project and start printing.
 
 ---
@@ -37,7 +37,7 @@ All conversion happens locally inside your browser.
 
 The extension integrates directly into MakerWorld.
 
-Converting a project is as simple as clicking **Convert to Snapmaker U1**. The converted project is downloaded automatically as a `.3mf` file with the `-U1` suffix and can be opened directly in Snapmaker Orca.
+Converting a project is as simple as clicking **Convert to Anycubic Kobra S1**. The converted project is downloaded automatically as a `.3mf` file with the `-KobraS1` suffix and can be opened directly in Anycubic Slicer Next.
 
 ![Generated file](screenshots/3mf.png)
 
@@ -45,15 +45,15 @@ Converting a project is as simple as clicking **Convert to Snapmaker U1**. The c
 
 ## Why this extension?
 
-MakerWorld print profiles are currently distributed as Bambu Studio project files. Snapmaker Orca can open these projects, but they often require manual adjustments before they are ready to print.
+MakerWorld print profiles are currently distributed as Bambu Studio project files. Anycubic Slicer Next can open these projects, but they often require manual adjustments before they are ready to print.
 
 Some settings are not fully compatible and generate warnings when the project is opened. Fixing these warnings manually can reset other project settings to their defaults, making it difficult to preserve the creator's original print profile.
 
-MakerWorld to Snapmaker U1 automates that process by preserving the original project wherever possible while applying only the compatibility changes required for Snapmaker Orca.
+MakerWorld to Anycubic Kobra S1 automates that process by preserving the original project wherever possible while applying only the compatibility changes required for Anycubic Slicer Next.
 
 The goal is simple:
 
-> Click **Convert to Snapmaker U1** on MakerWorld, open the generated project in Snapmaker Orca and start printing — while preserving the creator's original print settings whenever possible.
+> Click **Convert to Anycubic Kobra S1** on MakerWorld, open the generated project in Anycubic Slicer Next and start printing — while preserving the creator's original print settings whenever possible.
 
 ---
 
@@ -63,7 +63,7 @@ The goal is simple:
 
 ✔ Preserves the creator's original print settings whenever possible
 
-✔ Automatically fixes common Snapmaker Orca compatibility issues
+✔ Automatically fixes common Anycubic Slicer Next compatibility issues
 
 ✔ Automatically corrects plate positions in multi-plate MakerWorld projects
 
@@ -71,7 +71,7 @@ The goal is simple:
 
 ✔ No uploads, external converters or additional software required
 
-✔ Supports custom Snapmaker Orca and OrcaSlicer printer profiles
+✔ Supports custom Anycubic Slicer Next and OrcaSlicer printer profiles
 
 ---
 
@@ -79,11 +79,11 @@ The goal is simple:
 
 ### Preserve the original project
 
-The converter automatically detects the original MakerWorld print profile and selects the matching Snapmaker U1 system profile.
+The converter automatically detects the original MakerWorld print profile and selects the matching Anycubic Kobra S1 system profile.
 
 Compatible process settings are preserved automatically, allowing converted projects to stay as close as possible to the creator's original intent.
 
-The converter does not recreate print settings from scratch. Instead, it starts with the creator's original project and only modifies settings that are required for Snapmaker Orca compatibility.
+The converter does not recreate print settings from scratch. Instead, it starts with the creator's original project and only modifies settings that are required for Anycubic Slicer Next compatibility.
 
 ---
 
@@ -92,7 +92,7 @@ The converter does not recreate print settings from scratch. Instead, it starts 
 Several common compatibility issues are handled automatically.
 
 - Automatically enables **Exclude Object** to keep Adaptive Bed Mesh and per-object features available.
-- Automatically disables unwanted **Brim** generated by Snapmaker Orca.
+- Automatically disables unwanted **Brim** generated by Anycubic Slicer Next.
 - Automatically switches **Tree Support** to **Hybrid** whenever Adaptive Layer Height is detected.
 
 These adjustments match the workflow many users perform manually after importing MakerWorld projects.
@@ -101,7 +101,7 @@ These adjustments match the workflow many users perform manually after importing
 
 ### Multi-plate project support
 
-MakerWorld projects containing multiple build plates are automatically adjusted to the Snapmaker U1 plate layout.
+MakerWorld projects containing multiple build plates are automatically adjusted to the Anycubic Kobra S1 plate layout.
 
 The converter accounts for differences between the source printer's build-plate center and plate-grid spacing while preserving:
 
@@ -122,7 +122,7 @@ Filament-specific project settings are preserved for each source filament whenev
 
 This includes settings such as **Maximum Volumetric Speed**, temperatures, cooling settings and other filament overrides stored inside the MakerWorld project.
 
-This prevents preserved project filaments from silently falling back to unrelated Snapmaker Orca system values.
+This prevents preserved project filaments from silently falling back to unrelated Anycubic Slicer Next system values.
 
 ---
 
@@ -153,21 +153,21 @@ The copied report contains all technical information required for bug reports, m
 
 The extension includes several optional settings to customize the conversion process.
 
-The settings page can be opened at any time by clicking the **MakerWorld to Snapmaker U1** extension icon in the browser toolbar.
+The settings page can be opened at any time by clicking the **MakerWorld to Anycubic Kobra S1** extension icon in the browser toolbar.
 
 ### Print Profile Handling
 
 - **Preserve source print profile** *(recommended)*
 
-  Automatically detects the original print profile contained in the MakerWorld project and selects the closest matching Snapmaker U1 system profile.
+  Automatically detects the original print profile contained in the MakerWorld project and selects the closest matching Anycubic Kobra S1 system profile.
 
-- **Force U1 print profile**
+- **Force Kobra S1 print profile**
 
-  Always use a specific Snapmaker U1 print profile as the conversion base.
+  Always use a specific Anycubic Kobra S1 print profile as the conversion base.
 
-### Custom U1 Printer Profiles
+### Custom Kobra S1 Printer Profiles
 
-Import your own custom printer profiles from either Snapmaker Orca or regular OrcaSlicer.
+Import your own custom printer profiles from either Anycubic Slicer Next or regular OrcaSlicer.
 
 The converter stores both profile types separately and uses the corresponding profile depending on whether Orca Compatibility is enabled.
 
@@ -195,7 +195,7 @@ Browser-specific packages are generated in the `dist` directory.
 
 ### Chrome and Chromium-based browsers
 
-1. Download `makerworld-to-snapmaker-u1-chrome-vX.X.X.zip` from the latest GitHub release.
+1. Download `makerworld-to-kobra-s1-chrome-vX.X.X.zip` from the latest GitHub release.
 
 2. Extract the ZIP archive.
 
@@ -221,7 +221,7 @@ When a new version is released:
 2. Extract the ZIP archive.
 3. Replace the existing extension files in your folder with the new version.
 4. Open your browser's extension management page (`chrome://extensions`, `edge://extensions`, `brave://extensions`, etc.).
-5. Click **Reload** for the MakerWorld to Snapmaker U1 extension. If the browser was closed after replacing the files, reloading the extension is usually not necessary.
+5. Click **Reload** for the MakerWorld to Anycubic Kobra S1 extension. If the browser was closed after replacing the files, reloading the extension is usually not necessary.
 
 Your existing converter settings and imported custom printer profiles are stored in the browser and will be preserved during updates.
 
@@ -229,7 +229,7 @@ Your existing converter settings and imported custom printer profiles are stored
 
 Install directly from Mozilla Add-ons:
 
-[MakerWorld to Snapmaker U1 on Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/makerworld-to-snapmaker-u1/)
+[MakerWorld to Anycubic Kobra S1 on Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/makerworld-to-kobra-s1/)
 
 1. Click **Add to Firefox**.
 2. Confirm the requested permissions.
@@ -277,13 +277,13 @@ The extension performs the conversion itself. No external converter or upload se
 
 Yes.
 
-Custom printer profiles from both Snapmaker Orca and OrcaSlicer can be imported directly from the Options page.
+Custom printer profiles from both Anycubic Slicer Next and OrcaSlicer can be imported directly from the Options page.
 
 ---
 
 ### Does the converter preserve the original settings?
 
-The converter preserves the creator's original print settings whenever possible while automatically adjusting settings that are required for Snapmaker Orca compatibility.
+The converter preserves the creator's original print settings whenever possible while automatically adjusting settings that are required for Anycubic Slicer Next compatibility.
 
 ---
 
@@ -304,9 +304,9 @@ dist/
 ├── chrome/
 ├── firefox/
 ├── source/
-├── makerworld-to-snapmaker-u1-chrome-vX.X.X.zip
-├── makerworld-to-snapmaker-u1-firefox-vX.X.X.zip
-└── makerworld-to-snapmaker-u1-source-vX.X.X.zip
+├── makerworld-to-kobra-s1-chrome-vX.X.X.zip
+├── makerworld-to-kobra-s1-firefox-vX.X.X.zip
+└── makerworld-to-kobra-s1-source-vX.X.X.zip
 ```
 
 The `dist` directory is generated locally and is excluded from Git.
@@ -315,9 +315,9 @@ The `dist` directory is generated locally and is excluded from Git.
 
 ## Result
 
-The generated project opens as a normal Snapmaker Orca or Orca project and is ready for review before printing.
+The generated project opens as a normal Anycubic Slicer Next or Orca project and is ready for review before printing.
 
-![Snapmaker Orca](screenshots/project.png)
+![Anycubic Slicer Next](screenshots/project.png)
 
 ![Orca](screenshots/orca.png)
 ---
@@ -335,6 +335,9 @@ Original conversion engine:
 Current architecture, parser engine, compatibility layer and ongoing development:
 - Dragon2203
 
+Kobra S1 retarget (template pack, printer identity, UI):
+- PandaWinn (fork of Dragon2203/makerworld-to-snapmaker-U1 v1.6.2)
+
 See `THIRD_PARTY_NOTICES.md` for complete attribution information.
 
 ---
@@ -351,6 +354,6 @@ See:
 
 ## Disclaimer
 
-Always review converted projects in Snapmaker Orca before printing.
+Always review converted projects in Anycubic Slicer Next before printing.
 
 Although the converter preserves projects as closely as possible, users remain responsible for verifying printer settings before starting a print.

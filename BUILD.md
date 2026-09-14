@@ -1,4 +1,4 @@
-# Building MakerWorld to Snapmaker U1
+# Building MakerWorld to Anycubic Kobra S1
 
 This document describes how to reproduce the browser extension packages submitted to Mozilla Add-ons and published through GitHub Releases.
 
@@ -71,21 +71,21 @@ dist/
 ├── chrome/
 ├── firefox/
 ├── source/
-├── makerworld-to-snapmaker-u1-chrome-v<version>.zip
-├── makerworld-to-snapmaker-u1-firefox-v<version>.zip
-└── makerworld-to-snapmaker-u1-source-v<version>.zip
+├── makerworld-to-kobra-s1-chrome-v<version>.zip
+├── makerworld-to-kobra-s1-firefox-v<version>.zip
+└── makerworld-to-kobra-s1-source-v<version>.zip
 ```
 
 The Firefox package submitted to Mozilla Add-ons is:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v<version>.zip
+dist/makerworld-to-kobra-s1-firefox-v<version>.zip
 ```
 
 For version 1.1.0, the exact file is:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v1.1.0.zip
+dist/makerworld-to-kobra-s1-firefox-v1.1.0.zip
 ```
 
 The Firefox output contains the contents of `manifest.firefox.json` under the required filename `manifest.json`.
@@ -102,7 +102,7 @@ To reproduce the submitted Firefox add-on exactly:
 4. Use the generated file:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v1.1.0.zip
+dist/makerworld-to-kobra-s1-firefox-v1.1.0.zip
 ```
 
 No project source files are transformed, transpiled or minified during this process. The build script only selects the required runtime files, applies the browser-specific manifest filename and creates the release archive.
