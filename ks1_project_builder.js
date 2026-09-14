@@ -179,8 +179,8 @@ async function buildKS1Project(input, opts = {}) {
       : (
           customPrinterProfileReport.requested ===
           KS1_CUSTOM_PRINTER_STANDARD_ID
-            ? 'snorca-standard'
-            : 'snorca-custom'
+            ? 'ks1-standard'
+            : 'ks1-custom'
         );
 
 // -----------------------------------------------------------------------------

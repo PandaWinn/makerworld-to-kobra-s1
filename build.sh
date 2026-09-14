@@ -17,9 +17,9 @@ VERSION="$VERSION_CHROME"
 echo "Building MakerWorld to Anycubic Kobra S1 v$VERSION..."
 
 # Mirror of the file lists in build.ps1 — keep both in sync.
-SHARED_FILES="background.js content.js converter.js ks1_native_bridge.js ks1_error_report.js injected.js options.html options.js ks1_3mf_metadata.js ks1_bambu_parser.js ks1_compatibility.js ks1_custom_printer_profiles.js ks1_filament_merge.js ks1_model_parser.js ks1_profile_resolver.js ks1_project_builder.js ks1_project_merge.js ks1_project_parser.js ks1_project_report.js README.md CHANGELOG.md PRIVACY.md THIRD_PARTY_NOTICES.md LICENSE LICENSE-POLYFORM"
+SHARED_FILES="background.js content.js converter.js ks1_error_report.js injected.js options.html options.js ks1_3mf_metadata.js ks1_bambu_parser.js ks1_compatibility.js ks1_custom_printer_profiles.js ks1_filament_merge.js ks1_model_parser.js ks1_profile_resolver.js ks1_project_builder.js ks1_project_merge.js ks1_project_parser.js ks1_project_report.js README.md CHANGELOG.md PRIVACY.md THIRD_PARTY_NOTICES.md LICENSE LICENSE-POLYFORM"
 SHARED_DIRS="assets lib"
-SOURCE_FILES="manifest.json manifest.firefox.json background.js content.js converter.js ks1_native_bridge.js ks1_error_report.js injected.js options.html options.js ks1_3mf_metadata.js ks1_bambu_parser.js ks1_compatibility.js ks1_custom_printer_profiles.js ks1_filament_merge.js ks1_model_parser.js ks1_profile_resolver.js ks1_project_builder.js ks1_project_merge.js ks1_project_parser.js ks1_project_report.js build.ps1 build.sh BUILD.md README.md CHANGELOG.md PRIVACY.md THIRD_PARTY_NOTICES.md LICENSE LICENSE-POLYFORM"
+SOURCE_FILES="manifest.json manifest.firefox.json background.js content.js converter.js ks1_error_report.js injected.js options.html options.js ks1_3mf_metadata.js ks1_bambu_parser.js ks1_compatibility.js ks1_custom_printer_profiles.js ks1_filament_merge.js ks1_model_parser.js ks1_profile_resolver.js ks1_project_builder.js ks1_project_merge.js ks1_project_parser.js ks1_project_report.js build.ps1 build.sh BUILD.md README.md CHANGELOG.md PRIVACY.md THIRD_PARTY_NOTICES.md LICENSE LICENSE-POLYFORM"
 SOURCE_DIRS="assets lib"
 
 rm -rf "$ROOT/dist"

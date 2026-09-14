@@ -18,7 +18,6 @@ const DEFAULTS = {
   autoFixOrganicVariableLayer: true,
   fixMultiPlatePositioning: true,
   forceDownloadFilename:   false,
-  afterConvert:          'download',
   debugReport:           true,
   deepDebugReport:       false,
   smartProcessMerge:    true,
@@ -270,13 +269,13 @@ function updatePrinterProfileUi() {
     document.getElementById('orcaCompatibility')?.checked === true;
 
   const cards = document.getElementById('printerProfileCards');
-  const snorcaCard = document.getElementById('snorcaPrinterProfileCard');
+  const ks1Card = document.getElementById('ks1PrinterProfileCard');
   const orcaCard = document.getElementById('orcaPrinterProfileCard');
 
-  if (!cards || !snorcaCard || !orcaCard) return;
+  if (!cards || !ks1Card || !orcaCard) return;
 
-  const activeCard = enabled ? orcaCard : snorcaCard;
-  const inactiveCard = enabled ? snorcaCard : orcaCard;
+  const activeCard = enabled ? orcaCard : ks1Card;
+  const inactiveCard = enabled ? ks1Card : orcaCard;
 
   cards.prepend(activeCard);
   cards.append(inactiveCard);
@@ -333,7 +332,7 @@ async function importCustomPrinterProfileFiles(fileList, target) {
       const profile = normalizeCustomPrinterProfileJson(json, file.name);
 
       profile.sourceMode = 'manual';
-      profile.targetSlicer = target === 'orca' ? 'orca' : 'snorca';
+      profile.targetSlicer = target === 'orca' ? 'orca' : 'ks1';
 
       targetMap[profile.id] = profile;
       latestId = profile.id;
@@ -433,7 +432,6 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     autoFixOrganicVariableLayer: document.getElementById('autoFixOrganicVariableLayer')?.checked ?? true,
     fixMultiPlatePositioning: document.getElementById('fixMultiPlatePositioning')?.checked ?? true,
     forceDownloadFilename: !chrome.runtime.getURL('').startsWith('moz-extension://') && (document.getElementById('forceDownloadFilename')?.checked === true),
-    afterConvert:         document.getElementById('afterConvertOpen')?.checked ? 'open' : 'download',
     debugReport:           document.getElementById('debugReport')?.checked ?? true,
     deepDebugReport:       document.getElementById('deepDebugReport')?.checked ?? false,
     smartProcessMerge:     document.getElementById('smartProcessMerge')?.checked ?? true,
@@ -466,7 +464,7 @@ document.getElementById('cancelPrinterProfileImportBtn')?.addEventListener('clic
 document.getElementById('confirmPrinterProfileImportBtn')?.addEventListener('click', async () => {
   const target =
     document.querySelector('input[name="printerProfileTarget"]:checked')?.value ||
-    'snorca';
+    'ks1';
 
   const files = pendingPrinterProfileFiles;
   pendingPrinterProfileFiles = [];
@@ -476,7 +474,7 @@ document.getElementById('confirmPrinterProfileImportBtn')?.addEventListener('cli
 });
 
 document.getElementById('deleteCustomPrinterProfileBtn')?.addEventListener('click', () => {
-  deleteSelectedCustomPrinterProfile('snorca');
+  deleteSelectedCustomPrinterProfile('ks1');
 });
 
 document.getElementById('deleteOrcaCustomPrinterProfileBtn')?.addEventListener('click', () => {
@@ -614,48 +612,6 @@ document.getElementById('printProfileModeForce')?.addEventListener('change', upd
   document.getElementById('deepDebugReport').checked = s.deepDebugReport;
   document.getElementById('smartProcessMerge').checked = s.smartProcessMerge;
   document.getElementById('strictProcessMerge').checked = s.strictProcessMerge;
-
-  document.getElementById('afterConvertDownload').checked =
-    (s.afterConvert || 'download') !== 'open';
-
-  document.getElementById('afterConvertOpen').checked =
-    (s.afterConvert || 'download') === 'open';
-
-  document.getElementById('checkBridgeBtn')?.addEventListener('click', async () => {
-    const status = document.getElementById('bridgeStatus');
-
-    if (status) status.textContent = 'Checking…';
-
-    try {
-      const response = await new Promise(resolve => {
-        chrome.runtime.sendMessage({ type: 'ks1_bridge_ping' }, reply => {
-          if (chrome.runtime.lastError) {
-            resolve({ ok: false, error: chrome.runtime.lastError.message });
-            return;
-          }
-
-          resolve(reply || { ok: false, error: 'No response' });
-        });
-      });
-
-      if (status) {
-        if (response?.ok === true) {
-          status.textContent =
-            response.slicerFound === true
-              ? 'Helper found, Slicer Next detected ✓'
-              : 'Helper found, but Slicer Next was not detected';
-        } else if (response?.hostMissing === true) {
-          status.textContent =
-            'Helper not installed — run native_host/install.sh';
-        } else {
-          status.textContent =
-            'Helper check failed: ' + (response?.error || 'unknown error');
-        }
-      }
-    } catch (error) {
-      if (status) status.textContent = 'Helper check failed';
-    }
-  });
 
   await loadProfiles(s.forcedProfileId || '0.20mm-standard');
   updatePrintProfileUi();

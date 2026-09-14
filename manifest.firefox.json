@@ -39,7 +39,6 @@
   },
   "background": {
     "scripts": [
-      "ks1_native_bridge.js",
       "background.js"
     ]
   },
