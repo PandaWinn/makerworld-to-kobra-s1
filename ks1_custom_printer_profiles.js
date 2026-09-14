@@ -1,11 +1,11 @@
-// Browser-neutral helper logic for SnOrca/Snapmaker U1 custom printer profiles.
+// Browser-neutral helper logic for SnOrca/Snapmaker KS1 custom printer profiles.
 // No chrome.* API usage here on purpose.
 
-const U1_CUSTOM_PRINTER_STANDARD_ID = '__standard_u1_printer_profile__';
+const KS1_CUSTOM_PRINTER_STANDARD_ID = '__standard_ks1_printer_profile__';
 
-const U1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY = 'u1CustomPrinterProfiles';
+const KS1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY = 'ks1CustomPrinterProfiles';
 
-const U1_CUSTOM_PRINTER_MANAGEMENT_KEYS = new Set([
+const KS1_CUSTOM_PRINTER_MANAGEMENT_KEYS = new Set([
   'name',
   'inherits',
   'from',
@@ -37,7 +37,7 @@ function getCustomPrinterProfileId(json, fallbackName = '') {
 }
 
 function isCustomPrinterProfileManagementKey(key) {
-  return U1_CUSTOM_PRINTER_MANAGEMENT_KEYS.has(String(key || ''));
+  return KS1_CUSTOM_PRINTER_MANAGEMENT_KEYS.has(String(key || ''));
 }
 
 function isLikelyMachineOverrideKey(key) {
@@ -143,7 +143,7 @@ function ensureCustomPrinterProfileArraySlot(settings, key, index) {
   return settings[key];
 }
 
-function applyCustomPrinterProfileToU1Settings(settings, customPrinterProfile, options = {}) {
+function applyCustomPrinterProfileToKS1Settings(settings, customPrinterProfile, options = {}) {
   const targetFilamentCount = options.targetFilamentCount || 4;
   const machineIndex = targetFilamentCount + 1;
 
@@ -178,7 +178,7 @@ function applyCustomPrinterProfileToU1Settings(settings, customPrinterProfile, o
   const inheritedFrom =
     customPrinterProfile.inheritedFrom ||
     settings.printer_settings_id ||
-    'Snapmaker U1 (0.4 nozzle)';
+    'Snapmaker KS1 (0.4 nozzle)';
 
   const overrides = customPrinterProfile.overrides || {};
   const overrideKeys = Object.keys(overrides).filter(Boolean);
@@ -238,15 +238,15 @@ function applyCustomPrinterProfileToU1Settings(settings, customPrinterProfile, o
 // OrcaSlicer compatibility
 // -----------------------------------------------------------------------------
 
-const U1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY =
-  'u1OrcaCustomPrinterProfiles';
+const KS1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY =
+  'ks1OrcaCustomPrinterProfiles';
 
-const U1_ORCA_STANDARD_PRINTER_ID =
-  'Snapmaker U1 (0.4 nozzle)';
+const KS1_ORCA_STANDARD_PRINTER_ID =
+  'Snapmaker KS1 (0.4 nozzle)';
 
 // Exact printer override list confirmed by the successful native-Orca
 // 12-extruder and 5-extruder tests.
-const U1_ORCA_PRINTER_DIRTY_KEYS = [
+const KS1_ORCA_PRINTER_DIRTY_KEYS = [
   'default_nozzle_volume_type',
   'deretraction_speed',
   'extruder_colour',
@@ -287,7 +287,7 @@ const U1_ORCA_PRINTER_DIRTY_KEYS = [
 // These are the exact 4-slot arrays that became 5-slot arrays in the
 // successful dynamic 5-filament test. Keeping the list explicit prevents
 // unrelated process arrays from being expanded accidentally.
-const U1_ORCA_EXTRUDER_ARRAY_KEYS = new Set([
+const KS1_ORCA_EXTRUDER_ARRAY_KEYS = new Set([
   'activate_air_filtration',
   'activate_chamber_temp_control',
   'adaptive_pressure_advance',
@@ -363,7 +363,7 @@ const U1_ORCA_EXTRUDER_ARRAY_KEYS = new Set([
   'z_hop_types',
 ]);
 
-const U1_ORCA_REQUIRED_ARRAY_DEFAULTS = {
+const KS1_ORCA_REQUIRED_ARRAY_DEFAULTS = {
   default_nozzle_volume_type: 'Standard',
   deretraction_speed: '35',
   extruder_colour: '#FCE94F',
@@ -426,8 +426,8 @@ function getOrcaCustomProfileExtruderCount(customPrinterProfile) {
     customPrinterProfile?.overrides || {};
 
   const extruderArrayKeys = new Set([
-    ...U1_ORCA_EXTRUDER_ARRAY_KEYS,
-    ...Object.keys(U1_ORCA_REQUIRED_ARRAY_DEFAULTS),
+    ...KS1_ORCA_EXTRUDER_ARRAY_KEYS,
+    ...Object.keys(KS1_ORCA_REQUIRED_ARRAY_DEFAULTS),
     'printer_extruder_id',
   ]);
 
@@ -467,7 +467,7 @@ function normalizeOrcaPrinterArray(settings, key, targetExtruderCount, fallback)
   settings[key] = source;
 }
 
-function applyOrcaCompatibilityToU1Settings(
+function applyOrcaCompatibilityToKS1Settings(
   settings,
   customPrinterProfile,
   options = {}
@@ -489,14 +489,14 @@ function applyOrcaCompatibilityToU1Settings(
   const machineIndex =
     targetExtruderCount + 1;
 
-  const customReport = applyCustomPrinterProfileToU1Settings(
+  const customReport = applyCustomPrinterProfileToKS1Settings(
     settings,
     customPrinterProfile,
     { targetFilamentCount: targetExtruderCount }
   );
 
   if (!customReport.enabled) {
-    settings.printer_settings_id = U1_ORCA_STANDARD_PRINTER_ID;
+    settings.printer_settings_id = KS1_ORCA_STANDARD_PRINTER_ID;
 
     const inheritsGroup = ensureCustomPrinterProfileArraySlot(
       settings,
@@ -504,12 +504,12 @@ function applyOrcaCompatibilityToU1Settings(
       machineIndex
     );
 
-    inheritsGroup[machineIndex] = U1_ORCA_STANDARD_PRINTER_ID;
+    inheritsGroup[machineIndex] = KS1_ORCA_STANDARD_PRINTER_ID;
   }
 
   const normalizedArrayKeys = new Set();
 
-  for (const key of U1_ORCA_EXTRUDER_ARRAY_KEYS) {
+  for (const key of KS1_ORCA_EXTRUDER_ARRAY_KEYS) {
     if (!Array.isArray(settings[key])) continue;
 
     normalizeOrcaPrinterArray(
@@ -522,7 +522,7 @@ function applyOrcaCompatibilityToU1Settings(
     normalizedArrayKeys.add(key);
   }
 
-  for (const [key, fallback] of Object.entries(U1_ORCA_REQUIRED_ARRAY_DEFAULTS)) {
+  for (const [key, fallback] of Object.entries(KS1_ORCA_REQUIRED_ARRAY_DEFAULTS)) {
     normalizeOrcaPrinterArray(
       settings,
       key,
@@ -555,7 +555,7 @@ function applyOrcaCompatibilityToU1Settings(
 
   diff[machineIndex] = Array.from(new Set([
     ...existingMachineDiff,
-    ...U1_ORCA_PRINTER_DIRTY_KEYS,
+    ...KS1_ORCA_PRINTER_DIRTY_KEYS,
     ...(customReport.overrideKeys || []),
   ])).join(';');
 

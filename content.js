@@ -1,4 +1,4 @@
-// MakerWorld → Snapmaker U1 content script
+// MakerWorld → Snapmaker KS1 content script
 // Conversion is handled entirely in-browser via converter.js + JSZip (no external service needed).
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
@@ -33,13 +33,13 @@ function createButtonIconSvg(state) {
   //
   // This is unrelated to Chrome's extension developer mode.
   // Keep the value identical to options.js.
-  const ENABLE_U1_FAULT_SIMULATION = false;
+  const ENABLE_KS1_FAULT_SIMULATION = false;
 
   const SETTING_DEFAULTS = {
     printProfileMode:      'preserve',
     forcedProfileId:       '0.20mm-standard',
-    customPrinterProfileId: U1_CUSTOM_PRINTER_STANDARD_ID,
-    orcaCustomPrinterProfileId: U1_CUSTOM_PRINTER_STANDARD_ID,
+    customPrinterProfileId: KS1_CUSTOM_PRINTER_STANDARD_ID,
+    orcaCustomPrinterProfileId: KS1_CUSTOM_PRINTER_STANDARD_ID,
     orcaCompatibility:    false,
     filamentPresetMode:    'preserve',
     forceExcludeObject:    true,
@@ -52,10 +52,10 @@ function createButtonIconSvg(state) {
     smartProcessMerge:    true,
     strictProcessMerge:   false,
 
-    u1TestFault:          'none',
+    ks1TestFault:          'none',
   };
 
-  let u1ModeActive       = false;
+  let ks1ModeActive       = false;
   let injectedSlide      = null;
   let isInjecting        = false;
   let isConverting       = false;
@@ -104,7 +104,7 @@ function createButtonIconSvg(state) {
           chrome.storage.sync.get(defaults, (result) => {
             if (chrome.runtime?.lastError) {
               console.warn(
-                '[U1 Extension] sync storage read failed, using defaults:',
+                '[KS1 Extension] sync storage read failed, using defaults:',
                 chrome.runtime.lastError.message
               );
               resolve({ ...defaults });
@@ -117,13 +117,13 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[U1 Extension] sync storage read failed, using defaults:',
+        '[KS1 Extension] sync storage read failed, using defaults:',
         error
       );
     }
 
     console.warn(
-      '[U1 Extension] extension sync storage unavailable, using defaults'
+      '[KS1 Extension] extension sync storage unavailable, using defaults'
     );
 
     return { ...defaults };
@@ -155,7 +155,7 @@ function createButtonIconSvg(state) {
                   chrome.runtime?.lastError
                 ) {
                   console.warn(
-                    '[U1 Extension] sync storage write failed:',
+                    '[KS1 Extension] sync storage write failed:',
                     chrome.runtime.lastError.message
                   );
 
@@ -171,7 +171,7 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[U1 Extension] sync storage write failed:',
+        '[KS1 Extension] sync storage write failed:',
         error
       );
     }
@@ -179,22 +179,22 @@ function createButtonIconSvg(state) {
     return false;
   }
 
-  async function consumeU1TestFault() {
+  async function consumeKS1TestFault() {
     if (
-      ENABLE_U1_FAULT_SIMULATION !== true
+      ENABLE_KS1_FAULT_SIMULATION !== true
     ) {
       return 'none';
     }
 
     const stored =
       await getStorageSyncSafe({
-        u1TestFault:
+        ks1TestFault:
           'none',
       });
 
     const selectedFault =
       String(
-        stored?.u1TestFault ||
+        stored?.ks1TestFault ||
         'none'
       );
 
@@ -207,7 +207,7 @@ function createButtonIconSvg(state) {
     // Even when the simulated error is thrown immediately afterwards,
     // the following conversion starts normally.
     await setStorageSyncSafe({
-      u1TestFault:
+      ks1TestFault:
         'none',
     });
 
@@ -261,7 +261,7 @@ function createButtonIconSvg(state) {
     }
   }
 
-  function isU1InvalidFilenameError(
+  function isKS1InvalidFilenameError(
     errorMessage
   ) {
     return /invalid filename/i.test(
@@ -269,7 +269,7 @@ function createButtonIconSvg(state) {
     );
   }
 
-  function truncateU1DownloadFilename(
+  function truncateKS1DownloadFilename(
     filename,
     maxCodePoints = 180
   ) {
@@ -312,11 +312,11 @@ function createButtonIconSvg(state) {
 
     return (
       truncatedBase ||
-      'model-U1'
+      'model-KS1'
     ) + extension;
   }
 
-  function createU1DownloadFilenameFallback(
+  function createKS1DownloadFilenameFallback(
     filename
   ) {
     const original =
@@ -385,7 +385,7 @@ function createButtonIconSvg(state) {
       fallback === '..'
     ) {
       fallback =
-        'model-U1.3mf';
+        'model-KS1.3mf';
     }
 
     const extensionMatch =
@@ -417,7 +417,7 @@ function createButtonIconSvg(state) {
     }
 
     fallback =
-      truncateU1DownloadFilename(
+      truncateKS1DownloadFilename(
         fallback
       );
 
@@ -426,7 +426,7 @@ function createButtonIconSvg(state) {
       fallback === '.3mf'
     ) {
       fallback =
-        'model-U1.3mf';
+        'model-KS1.3mf';
     }
 
     return {
@@ -438,7 +438,7 @@ function createButtonIconSvg(state) {
     };
   }
 
-  function createU1OutputDownloadError(
+  function createKS1OutputDownloadError(
     errorMessage,
     downloadReport
   ) {
@@ -450,7 +450,7 @@ function createButtonIconSvg(state) {
         )
       );
 
-    error.u1DiagnosticContext = {
+    error.ks1DiagnosticContext = {
       operation:
         'start-converted-file-download',
 
@@ -491,7 +491,7 @@ function createButtonIconSvg(state) {
     return error;
   }
 
-  function logU1OutputDownloadReportSafe(
+  function logKS1OutputDownloadReportSafe(
     downloadReport,
     enabled = true
   ) {
@@ -499,16 +499,16 @@ function createButtonIconSvg(state) {
 
     try {
       if (
-        typeof logU1OutputDownloadReport ===
+        typeof logKS1OutputDownloadReport ===
         'function'
       ) {
-        logU1OutputDownloadReport(
+        logKS1OutputDownloadReport(
           downloadReport
         );
       }
     } catch (reportError) {
       console.warn(
-        '[U1 Extension] Could not log output download report:',
+        '[KS1 Extension] Could not log output download report:',
         reportError
       );
     }
@@ -532,7 +532,7 @@ function createButtonIconSvg(state) {
           chrome.storage.local.get(defaults, (result) => {
             if (chrome.runtime?.lastError) {
               console.warn(
-                '[U1 Extension] local storage read failed, using defaults:',
+                '[KS1 Extension] local storage read failed, using defaults:',
                 chrome.runtime.lastError.message
               );
               resolve({ ...defaults });
@@ -545,21 +545,21 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[U1 Extension] local storage read failed, using defaults:',
+        '[KS1 Extension] local storage read failed, using defaults:',
         error
       );
     }
 
     console.warn(
-      '[U1 Extension] extension local storage unavailable, using defaults'
+      '[KS1 Extension] extension local storage unavailable, using defaults'
     );
 
     return { ...defaults };
   }
 
   // ── Styles ────────────────────────────────────────────────────────────────────
-  const __u1Style = document.createElement('style');
-  __u1Style.textContent = `
+  const __ks1Style = document.createElement('style');
+  __ks1Style.textContent = `
     @keyframes convert-spin {
       to { transform: rotate(360deg); }
     }
@@ -579,7 +579,7 @@ function createButtonIconSvg(state) {
       75%     { transform: translateX(-1px); }
     }
 
-    .u1-btn {
+    .ks1-btn {
       position: relative;
       overflow: hidden;
       display: flex !important;
@@ -627,23 +627,23 @@ function createButtonIconSvg(state) {
     .convert-button__icon-error { display: none; }
 
     /* Converting */
-    .u1-btn.is-converting .convert-button__icon-ready   { display: none; }
-    .u1-btn.is-converting .convert-button__icon-loading {
+    .ks1-btn.is-converting .convert-button__icon-ready   { display: none; }
+    .ks1-btn.is-converting .convert-button__icon-loading {
       display: block; animation: convert-spin .9s linear infinite;
     }
-    .u1-btn.is-converting .convert-button__progress {
+    .ks1-btn.is-converting .convert-button__progress {
       opacity: 1; animation: convert-progress-sweep 1.8s ease-in-out infinite;
     }
 
     /* Success */
-    .u1-btn.is-success .convert-button__icon-ready   { display: none; }
-    .u1-btn.is-success .convert-button__icon-success {
+    .ks1-btn.is-success .convert-button__icon-ready   { display: none; }
+    .ks1-btn.is-success .convert-button__icon-success {
       display: block; animation: convert-success-pop 280ms ease-out;
     }
 
     /* Error */
-    .u1-btn.is-error .convert-button__icon-ready { display: none; }
-    .u1-btn.is-error .convert-button__icon-error {
+    .ks1-btn.is-error .convert-button__icon-ready { display: none; }
+    .ks1-btn.is-error .convert-button__icon-error {
       display: block; animation: convert-error-shake 360ms ease-in-out;
     }
 
@@ -654,7 +654,7 @@ function createButtonIconSvg(state) {
       .convert-button__icon-error { animation: none !important; }
     }
   `;
-  (document.head || document.documentElement).appendChild(__u1Style);
+  (document.head || document.documentElement).appendChild(__ks1Style);
 
   // Inject injected.js into MAIN world (fetch interceptor)
   const script = document.createElement('script');
@@ -856,7 +856,7 @@ function createButtonIconSvg(state) {
       'Open in Bambu Studio';
 
     label.classList.remove(
-      'u1-btn',
+      'ks1-btn',
       'is-converting',
       'is-success',
       'is-error'
@@ -898,7 +898,7 @@ function createButtonIconSvg(state) {
     label.dataset.origText =
       label.textContent.trim() || 'Open in Bambu Studio';
 
-    label.classList.add('u1-btn');
+    label.classList.add('ks1-btn');
     _btnState = null;
 
     const progress = document.createElement('span');
@@ -921,7 +921,7 @@ function createButtonIconSvg(state) {
 
     const buttonLabel = document.createElement('span');
     buttonLabel.className = 'convert-button__label';
-    buttonLabel.textContent = 'Convert to Snapmaker U1';
+    buttonLabel.textContent = 'Convert to Snapmaker KS1';
 
     content.append(icon, buttonLabel);
     label.replaceChildren(progress, content);
@@ -943,10 +943,10 @@ function createButtonIconSvg(state) {
       state === 'converting'
         ? 'Converting profile'
         : state === 'success'
-          ? 'U1 profile ready'
+          ? 'KS1 profile ready'
           : state === 'error'
             ? 'Conversion failed'
-            : 'Convert to Snapmaker U1';
+            : 'Convert to Snapmaker KS1';
 
     const expectedClassPresent =
       state === 'converting'
@@ -1011,7 +1011,7 @@ function createButtonIconSvg(state) {
 
         if (labelEl) {
           labelEl.textContent =
-            'U1 profile ready';
+            'KS1 profile ready';
         }
 
         break;
@@ -1031,7 +1031,7 @@ function createButtonIconSvg(state) {
       default:
         if (labelEl) {
           labelEl.textContent =
-            'Convert to Snapmaker U1';
+            'Convert to Snapmaker KS1';
         }
     }
 
@@ -1043,25 +1043,25 @@ function createButtonIconSvg(state) {
     _resultState = 'ready';
     _lastErrorReportText = '';
 
-    if (u1ModeActive && !isConverting) {
+    if (ks1ModeActive && !isConverting) {
       updateButton();
     }
   }
 
-  function setU1Mode(active) {
+  function setKS1Mode(active) {
     if (!active) {
-      void resetU1ErrorDropdown({
+      void resetKS1ErrorDropdown({
         closeDropdown: true,
       });
     }
 
-    u1ModeActive = active;
+    ks1ModeActive = active;
     _resultState = 'ready';
     _lastErrorReportText = '';
 
     window.postMessage(
       {
-        __u1SetMode:
+        __ks1SetMode:
           active,
       },
       '*'
@@ -1069,9 +1069,9 @@ function createButtonIconSvg(state) {
 
     updateButton();
 
-    // Record the changed U1 selection and button state in the compact
+    // Record the changed KS1 selection and button state in the compact
     // MakerWorld UI integration report.
-    scheduleU1Reconcile(0);
+    scheduleKS1Reconcile(0);
   }
 
   function updateButton() {
@@ -1081,7 +1081,7 @@ function createButtonIconSvg(state) {
     if (!btn) return;
 
     // MakerWorld can keep hidden responsive copies of the primary action in
-    // the DOM. Only the currently visible candidate may contain the U1 UI.
+    // the DOM. Only the currently visible candidate may contain the KS1 UI.
     cleanupInactivePrimaryButtonUIs(
       btn
     );
@@ -1091,7 +1091,7 @@ function createButtonIconSvg(state) {
 
     if (!label) return;
 
-    if (u1ModeActive) {
+    if (ks1ModeActive) {
       ensureButtonUI(
         btn
       );
@@ -1121,7 +1121,7 @@ function createButtonIconSvg(state) {
   // another part of MakerWorld. No profile-specific state is stored.
   document.addEventListener('click', (e) => {
     if (
-      !u1ModeActive ||
+      !ks1ModeActive ||
       isConverting ||
       _dropdownUiBusy ||
       _resultState === 'ready'
@@ -1130,8 +1130,8 @@ function createButtonIconSvg(state) {
     }
 
     if (e.target.closest('span.primaryButton')) return;
-    if (e.target.closest('[data-u1-slide]')) return;
-    if (e.target.closest('[data-u1-error-menu]')) return;
+    if (e.target.closest('[data-ks1-slide]')) return;
+    if (e.target.closest('[data-ks1-error-menu]')) return;
 
     const btn =
       findButton();
@@ -1150,7 +1150,7 @@ function createButtonIconSvg(state) {
       arrow &&
       arrow.contains(e.target)
     ) {
-      void resetU1ErrorDropdown({
+      void resetKS1ErrorDropdown({
         closeDropdown: false,
       });
 
@@ -1158,7 +1158,7 @@ function createButtonIconSvg(state) {
       return;
     }
 
-    void resetU1ErrorDropdown({
+    void resetKS1ErrorDropdown({
       closeDropdown: true,
     }).finally(() => {
       resetConversionResult();
@@ -1167,7 +1167,7 @@ function createButtonIconSvg(state) {
 
   // Start or repeat the conversion when the main MakerWorld button is clicked.
   document.addEventListener('click', (e) => {
-    if (!u1ModeActive || _bypassInterceptor) return;
+    if (!ks1ModeActive || _bypassInterceptor) return;
 
     const btn = e.target.closest('span.primaryButton');
     if (!btn) return;
@@ -1192,7 +1192,7 @@ function createButtonIconSvg(state) {
     //
     // clickNativeDownload() can then use the existing dropdown directly,
     // avoiding the visible close → reopen → close sequence.
-    await resetU1ErrorDropdown({
+    await resetKS1ErrorDropdown({
       closeDropdown: false,
     });
 
@@ -1206,7 +1206,7 @@ function createButtonIconSvg(state) {
       getMakerWorldModelId();
 
     const diagnostics =
-      createU1ConversionDiagnostics({
+      createKS1ConversionDiagnostics({
         converterVersion:
           getConverterVersion(),
 
@@ -1228,11 +1228,11 @@ function createButtonIconSvg(state) {
 
     try {
       activeTestFault =
-        await consumeU1TestFault();
+        await consumeKS1TestFault();
 
       diagnostics.setMetadata({
         faultSimulationEnabled:
-          ENABLE_U1_FAULT_SIMULATION === true,
+          ENABLE_KS1_FAULT_SIMULATION === true,
 
         simulatedFault:
           activeTestFault !== 'none'
@@ -1245,9 +1245,9 @@ function createButtonIconSvg(state) {
       // -------------------------------------------------------------------------
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD
+        KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD
         )
       );
 
@@ -1255,12 +1255,12 @@ function createButtonIconSvg(state) {
         activeTestFault ===
         'download-timeout'
       ) {
-        throw new U1ConversionError({
+        throw new KS1ConversionError({
           code:
-            U1_ERROR_CODES.DOWNLOAD_TIMEOUT,
+            KS1_ERROR_CODES.DOWNLOAD_TIMEOUT,
 
           stage:
-            U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
+            KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
 
           message:
             'Simulated MakerWorld download capture timeout.',
@@ -1375,7 +1375,7 @@ function createButtonIconSvg(state) {
       });
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD
+        KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD
       );
 
       // -------------------------------------------------------------------------
@@ -1383,13 +1383,13 @@ function createButtonIconSvg(state) {
       // -------------------------------------------------------------------------
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE
+        KS1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE
         )
       );
 
-      throwU1SimulatedFault(
+      throwKS1SimulatedFault(
         activeTestFault,
         'captured-response-failure',
         'Simulated captured MakerWorld response failure.'
@@ -1426,7 +1426,7 @@ function createButtonIconSvg(state) {
       });
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE
+        KS1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE
       );
 
       // -------------------------------------------------------------------------
@@ -1447,13 +1447,13 @@ function createButtonIconSvg(state) {
 
       if (!responseIsZip) {
         diagnostics.startStage(
-          U1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE,
-          getU1DiagnosticStageLabel(
-            U1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE
+          KS1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE,
+          getKS1DiagnosticStageLabel(
+            KS1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE
           )
         );
 
-        throwU1SimulatedFault(
+        throwKS1SimulatedFault(
           activeTestFault,
           'cdn-download-failure',
           'Simulated MakerWorld CDN download failure.'
@@ -1531,7 +1531,7 @@ function createButtonIconSvg(state) {
         });
 
         diagnostics.completeStage(
-          U1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE
+          KS1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE
         );
       } else {
         diagnostics.setMetadata({
@@ -1545,13 +1545,13 @@ function createButtonIconSvg(state) {
       // -------------------------------------------------------------------------
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.READ_SETTINGS,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.READ_SETTINGS
+        KS1_DIAGNOSTIC_STAGES.READ_SETTINGS,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.READ_SETTINGS
         )
       );
 
-      throwU1SimulatedFault(
+      throwKS1SimulatedFault(
         activeTestFault,
         'storage-unavailable',
         'Simulated extension storage failure.'
@@ -1571,12 +1571,12 @@ function createButtonIconSvg(state) {
           ? (
               currentSettings
                 .orcaCustomPrinterProfileId ||
-              U1_CUSTOM_PRINTER_STANDARD_ID
+              KS1_CUSTOM_PRINTER_STANDARD_ID
             )
           : (
               currentSettings
                 .customPrinterProfileId ||
-              U1_CUSTOM_PRINTER_STANDARD_ID
+              KS1_CUSTOM_PRINTER_STANDARD_ID
             );
 
       diagnostics.setMetadata({
@@ -1595,7 +1595,7 @@ function createButtonIconSvg(state) {
       });
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.READ_SETTINGS
+        KS1_DIAGNOSTIC_STAGES.READ_SETTINGS
       );
 
       // -------------------------------------------------------------------------
@@ -1603,20 +1603,20 @@ function createButtonIconSvg(state) {
       // -------------------------------------------------------------------------
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE
+        KS1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE
         ),
         {
           selectedCustomPrinterProfileId,
 
           customProfileRequired:
             selectedCustomPrinterProfileId !==
-            U1_CUSTOM_PRINTER_STANDARD_ID,
+            KS1_CUSTOM_PRINTER_STANDARD_ID,
         }
       );
 
-      throwU1SimulatedFault(
+      throwKS1SimulatedFault(
         activeTestFault,
         'profile-load-failure',
         'Simulated printer profile load failure.'
@@ -1630,24 +1630,24 @@ function createButtonIconSvg(state) {
 
       if (
         selectedCustomPrinterProfileId !==
-        U1_CUSTOM_PRINTER_STANDARD_ID
+        KS1_CUSTOM_PRINTER_STANDARD_ID
       ) {
         const localSettings =
           await getStorageLocalSafe({
-            [U1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY]:
+            [KS1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY]:
               {},
 
-            [U1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY]:
+            [KS1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY]:
               {},
           });
 
         const activeProfileMap =
           useOrcaCompatibility
             ? localSettings[
-                U1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY
+                KS1_ORCA_CUSTOM_PRINTER_PROFILE_STORAGE_KEY
               ]
             : localSettings[
-                U1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY
+                KS1_CUSTOM_PRINTER_PROFILE_STORAGE_KEY
               ];
 
         customPrinterProfile =
@@ -1660,7 +1660,7 @@ function createButtonIconSvg(state) {
             true;
 
           console.warn(
-            '[U1 Extension] Selected custom printer profile was not found in local storage:',
+            '[KS1 Extension] Selected custom printer profile was not found in local storage:',
             selectedCustomPrinterProfileId
           );
         }
@@ -1674,7 +1674,7 @@ function createButtonIconSvg(state) {
       });
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE
+        KS1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE
       );
 
       // -------------------------------------------------------------------------
@@ -1682,7 +1682,7 @@ function createButtonIconSvg(state) {
       // -------------------------------------------------------------------------
 
       const converted =
-        await convertToU1(
+        await convertToKS1(
           buffer,
           {
             ...currentSettings,
@@ -1691,10 +1691,10 @@ function createButtonIconSvg(state) {
             customPrinterProfileMissing,
             selectedCustomPrinterProfileId,
 
-            u1TestFault:
+            ks1TestFault:
               activeTestFault,
 
-            u1Diagnostics:
+            ks1Diagnostics:
               diagnostics,
           }
         );
@@ -1718,10 +1718,10 @@ function createButtonIconSvg(state) {
         ).replace(/\.3mf$/i, '');
 
       const outName =
-        baseName + '-U1.3mf';
+        baseName + '-KS1.3mf';
 
       const filenameFallback =
-        createU1DownloadFilenameFallback(
+        createKS1DownloadFilenameFallback(
           outName
         );
 
@@ -1796,9 +1796,9 @@ function createButtonIconSvg(state) {
       });
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD
+        KS1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD
         ),
         {
           browser:
@@ -1821,7 +1821,7 @@ function createButtonIconSvg(state) {
         }
       );
 
-      throwU1SimulatedFault(
+      throwKS1SimulatedFault(
         activeTestFault,
         'output-download-failure',
         'Simulated converted file download failure.'
@@ -1844,7 +1844,7 @@ function createButtonIconSvg(state) {
           async filename =>
             browser.runtime.sendMessage({
               type:
-                'u1_download_firefox',
+                'ks1_download_firefox',
 
               data:
                 downloadData,
@@ -1876,7 +1876,7 @@ function createButtonIconSvg(state) {
                 chrome.runtime.sendMessage(
                   {
                     type:
-                      'u1_download',
+                      'ks1_download',
 
                     url:
                       outUrl,
@@ -2066,7 +2066,7 @@ function createButtonIconSvg(state) {
           downloadReport.finalFilename =
             downloadReport.originalFilename;
         } else if (
-          isU1InvalidFilenameError(
+          isKS1InvalidFilenameError(
             originalAttempt.error
           ) &&
           downloadReport.fallbackAvailable
@@ -2123,12 +2123,12 @@ function createButtonIconSvg(state) {
               );
 
             simulatedError.name =
-              'U1SimulatedFaultError';
+              'KS1SimulatedFaultError';
 
-            simulatedError.u1Simulated =
+            simulatedError.ks1Simulated =
               true;
 
-            simulatedError.u1SimulatedFault =
+            simulatedError.ks1SimulatedFault =
               activeTestFault;
 
             fallbackAttempt = {
@@ -2182,30 +2182,30 @@ function createButtonIconSvg(state) {
                 ),
             });
 
-            logU1OutputDownloadReportSafe(
+            logKS1OutputDownloadReportSafe(
               downloadReport,
               currentSettings.debugReport !== false
             );
 
             const downloadError =
-              createU1OutputDownloadError(
+              createKS1OutputDownloadError(
                 fallbackAttempt.error,
                 downloadReport
               );
 
             if (
               fallbackAttempt.originalError
-                ?.u1Simulated === true
+                ?.ks1Simulated === true
             ) {
               downloadError.name =
-                'U1SimulatedFaultError';
+                'KS1SimulatedFaultError';
 
-              downloadError.u1Simulated =
+              downloadError.ks1Simulated =
                 true;
 
-              downloadError.u1SimulatedFault =
+              downloadError.ks1SimulatedFault =
                 fallbackAttempt.originalError
-                  .u1SimulatedFault;
+                  .ks1SimulatedFault;
             }
 
             diagnostics.setOperation({
@@ -2243,11 +2243,11 @@ function createButtonIconSvg(state) {
                 downloadReport.normalizationChanged,
 
               simulated:
-                downloadError.u1Simulated ===
+                downloadError.ks1Simulated ===
                 true,
 
               simulatedFault:
-                downloadError.u1SimulatedFault ||
+                downloadError.ks1SimulatedFault ||
                 null,
 
               outputBytes:
@@ -2284,12 +2284,12 @@ function createButtonIconSvg(state) {
               ),
           });
 
-          logU1OutputDownloadReportSafe(
+          logKS1OutputDownloadReportSafe(
             downloadReport,
             currentSettings.debugReport !== false
           );
 
-          throw createU1OutputDownloadError(
+          throw createKS1OutputDownloadError(
             originalAttempt.error,
             downloadReport
           );
@@ -2321,7 +2321,7 @@ function createButtonIconSvg(state) {
 
         diagnostics.clearOperation();
 
-        logU1OutputDownloadReportSafe(
+        logKS1OutputDownloadReportSafe(
           downloadReport,
           currentSettings.debugReport !== false
         );
@@ -2338,18 +2338,18 @@ function createButtonIconSvg(state) {
       }
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD
+        KS1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD
       );
 
       diagnostics.startStage(
-        U1_DIAGNOSTIC_STAGES.FINISHED,
-        getU1DiagnosticStageLabel(
-          U1_DIAGNOSTIC_STAGES.FINISHED
+        KS1_DIAGNOSTIC_STAGES.FINISHED,
+        getKS1DiagnosticStageLabel(
+          KS1_DIAGNOSTIC_STAGES.FINISHED
         )
       );
 
       diagnostics.completeStage(
-        U1_DIAGNOSTIC_STAGES.FINISHED
+        KS1_DIAGNOSTIC_STAGES.FINISHED
       );
 
       diagnostics.finish();
@@ -2368,12 +2368,12 @@ function createButtonIconSvg(state) {
         'conversion';
 
       const stageDefaults =
-        getU1StageErrorDefaults(
+        getKS1StageErrorDefaults(
           failedStage
         );
 
       const normalizedError =
-        prepareU1ErrorForReport(
+        prepareKS1ErrorForReport(
           err,
           {
             diagnostics,
@@ -2395,14 +2395,14 @@ function createButtonIconSvg(state) {
           }
         );
 
-      logU1ConversionError(
+      logKS1ConversionError(
         normalizedError,
         diagnostics
       );
 
       try {
         _lastErrorReportText =
-          buildU1ErrorReportText(
+          buildKS1ErrorReportText(
             normalizedError,
             diagnostics
           );
@@ -2411,7 +2411,7 @@ function createButtonIconSvg(state) {
           '';
 
         console.warn(
-          '[U1 Extension] Could not build the copy-ready error report:',
+          '[KS1 Extension] Could not build the copy-ready error report:',
           reportError
         );
       }
@@ -2425,13 +2425,13 @@ function createButtonIconSvg(state) {
       );
 
       try {
-        await showU1ErrorDropdown(
+        await showKS1ErrorDropdown(
           normalizedError,
           diagnostics
         );
       } catch (dropdownError) {
         console.warn(
-          '[U1 Extension] Could not display the error dropdown:',
+          '[KS1 Extension] Could not display the error dropdown:',
           dropdownError
         );
       }
@@ -2444,7 +2444,7 @@ function createButtonIconSvg(state) {
 
       // MakerWorld may replace or rerender the primary button while its own
       // download request is running. MutationObserver updates are intentionally
-      // ignored during conversion, so enforce the final U1 state once more now.
+      // ignored during conversion, so enforce the final KS1 state once more now.
       updateButton();
     }
   }
@@ -2457,19 +2457,19 @@ function createButtonIconSvg(state) {
 
         window.postMessage(
           {
-            __u1CancelCapture:
+            __ks1CancelCapture:
               true,
           },
           '*'
         );
 
         reject(
-          new U1ConversionError({
+          new KS1ConversionError({
             code:
-              U1_ERROR_CODES.DOWNLOAD_TIMEOUT,
+              KS1_ERROR_CODES.DOWNLOAD_TIMEOUT,
 
             stage:
-              U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
+              KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD,
 
             message:
               'MakerWorld download capture timed out after 30 seconds.',
@@ -2630,16 +2630,16 @@ function createButtonIconSvg(state) {
           legacyHttpStatus !== null;
 
         reject(
-          new U1ConversionError({
+          new KS1ConversionError({
             code:
               isHttpError
-                ? U1_ERROR_CODES
+                ? KS1_ERROR_CODES
                     .DOWNLOAD_HTTP_FAILED
-                : U1_ERROR_CODES
+                : KS1_ERROR_CODES
                     .DOWNLOAD_INTERCEPT_FAILED,
 
             stage:
-              U1_DIAGNOSTIC_STAGES
+              KS1_DIAGNOSTIC_STAGES
                 .CAPTURE_DOWNLOAD,
 
             message:
@@ -2688,19 +2688,19 @@ function createButtonIconSvg(state) {
       }
       
       function cleanup() {
-        window.removeEventListener('__u1_3mf',     onFile);
-        window.removeEventListener('__u1_3mf_err', onErr);
+        window.removeEventListener('__ks1_3mf',     onFile);
+        window.removeEventListener('__ks1_3mf_err', onErr);
       }
 
-      window.addEventListener('__u1_3mf',     onFile);
-      window.addEventListener('__u1_3mf_err', onErr);
-      window.postMessage({ __u1StartCapture: true }, '*');
+      window.addEventListener('__ks1_3mf',     onFile);
+      window.addEventListener('__ks1_3mf_err', onErr);
+      window.postMessage({ __ks1StartCapture: true }, '*');
 
       setTimeout(() => {
         clickNativeDownload().catch((err) => {
           clearTimeout(timer);
           cleanup();
-          window.postMessage({ __u1CancelCapture: true }, '*');
+          window.postMessage({ __ks1CancelCapture: true }, '*');
           reject(err);
         });
       }, 100);
@@ -2756,7 +2756,7 @@ function createButtonIconSvg(state) {
       knownPopups.find(
         popup =>
           popup.hasAttribute(
-            'data-u1-error-dropdown'
+            'data-ks1-error-dropdown'
           )
       );
 
@@ -3011,7 +3011,7 @@ function createButtonIconSvg(state) {
         );
     } catch (error) {
       console.warn(
-        '[U1 Extension] Could not read MakerWorld action preference:',
+        '[KS1 Extension] Could not read MakerWorld action preference:',
         error
       );
     }
@@ -3038,7 +3038,7 @@ function createButtonIconSvg(state) {
       }
     } catch (error) {
       console.warn(
-        '[U1 Extension] Could not restore MakerWorld action preference:',
+        '[KS1 Extension] Could not restore MakerWorld action preference:',
         error
       );
     }
@@ -3229,9 +3229,9 @@ function createButtonIconSvg(state) {
       childNodes:
         Array.from(entry.childNodes)
           .map(node => node.cloneNode(true)),
-      dataU1ErrorMenu:
+      dataKS1ErrorMenu:
         entry.getAttribute(
-          'data-u1-error-menu'
+          'data-ks1-error-menu'
         ),
     }));
   }
@@ -3248,14 +3248,14 @@ function createButtonIconSvg(state) {
         )
       );
 
-      if (saved.dataU1ErrorMenu === null) {
+      if (saved.dataKS1ErrorMenu === null) {
         entry.removeAttribute(
-          'data-u1-error-menu'
+          'data-ks1-error-menu'
         );
       } else {
         entry.setAttribute(
-          'data-u1-error-menu',
-          saved.dataU1ErrorMenu
+          'data-ks1-error-menu',
+          saved.dataKS1ErrorMenu
         );
       }
     }
@@ -3353,7 +3353,7 @@ function createButtonIconSvg(state) {
     return wrapper;
   }
 
-  async function copyU1ErrorReport() {
+  async function copyKS1ErrorReport() {
     if (!_lastErrorReportText) return false;
 
     try {
@@ -3399,7 +3399,7 @@ function createButtonIconSvg(state) {
     }
   }
 
-  async function showU1ErrorDropdown(
+  async function showKS1ErrorDropdown(
     error,
     diagnostics
   ) {
@@ -3408,7 +3408,7 @@ function createButtonIconSvg(state) {
 
     if (!btn) return;
 
-    await resetU1ErrorDropdown({
+    await resetKS1ErrorDropdown({
       closeDropdown: false,
     });
 
@@ -3467,7 +3467,7 @@ function createButtonIconSvg(state) {
         await openMakerWorldDropdown(btn);
     } catch (openError) {
       console.warn(
-        '[U1 Extension] Could not open error dropdown:',
+        '[KS1 Extension] Could not open error dropdown:',
         openError
       );
 
@@ -3483,7 +3483,7 @@ function createButtonIconSvg(state) {
       nativeEntries.length < 2
     ) {
       console.warn(
-        '[U1 Extension] MakerWorld dropdown entries could not be identified.'
+        '[KS1 Extension] MakerWorld dropdown entries could not be identified.'
       );
 
       return;
@@ -3502,7 +3502,7 @@ function createButtonIconSvg(state) {
       )
     ) {
       console.warn(
-        '[U1 Extension] MakerWorld dropdown menu container could not be identified.'
+        '[KS1 Extension] MakerWorld dropdown menu container could not be identified.'
       );
 
       return;
@@ -3511,7 +3511,7 @@ function createButtonIconSvg(state) {
     // MakerWorld exposes the currently selected action in the primary button,
     // leaving only the two alternate actions inside the dropdown.
     //
-    // The U1 error UI needs three rows:
+    // The KS1 error UI needs three rows:
     //   Error
     //   Suggestion
     //   Report
@@ -3524,7 +3524,7 @@ function createButtonIconSvg(state) {
       ].cloneNode(true);
 
     reportEntry.setAttribute(
-      'data-u1-error-clone',
+      'data-ks1-error-clone',
       '1'
     );
 
@@ -3542,12 +3542,12 @@ function createButtonIconSvg(state) {
     const code =
       String(
         error?.code ||
-        U1_ERROR_CODES.UNKNOWN
+        KS1_ERROR_CODES.UNKNOWN
       );
 
     const stage =
       String(
-        getU1DiagnosticStageLabel(
+        getKS1DiagnosticStageLabel(
           error?.stage ||
           diagnostics?.currentStage
         )
@@ -3564,8 +3564,8 @@ function createButtonIconSvg(state) {
     // message.
     if (
       (
-        code === 'U1-DL-003' ||
-        code === 'U1-DL-001'
+        code === 'KS1-DL-003' ||
+        code === 'KS1-DL-001'
       ) &&
       /\b418\b/.test(
         String(
@@ -3589,7 +3589,7 @@ function createButtonIconSvg(state) {
 
     // The first native MakerWorld entry can represent the currently selected
     // action and may therefore inherit a special or invisible text color.
-    // Use the color of a normal visible menu entry for all temporary U1 rows.
+    // Use the color of a normal visible menu entry for all temporary KS1 rows.
     const menuTextColor =
       window.getComputedStyle(
         entries[1] ||
@@ -3599,11 +3599,11 @@ function createButtonIconSvg(state) {
 
     const previousDropdownMarker =
       dropdown.getAttribute(
-        'data-u1-error-dropdown'
+        'data-ks1-error-dropdown'
       );
 
     dropdown.setAttribute(
-      'data-u1-error-dropdown',
+      'data-ks1-error-dropdown',
       '1'
     );
 
@@ -3614,11 +3614,11 @@ function createButtonIconSvg(state) {
         event.stopImmediatePropagation();
 
         const copied =
-          await copyU1ErrorReport();
+          await copyKS1ErrorReport();
 
         const value =
           entries[2].querySelector(
-            '[data-u1-report-value]'
+            '[data-ks1-report-value]'
           );
 
         if (value) {
@@ -3631,7 +3631,7 @@ function createButtonIconSvg(state) {
 
     entries.forEach(entry => {
       entry.setAttribute(
-        'data-u1-error-menu',
+        'data-ks1-error-menu',
         '1'
       );
     });
@@ -3678,7 +3678,7 @@ function createButtonIconSvg(state) {
       );
     reportContent.lastElementChild
       ?.setAttribute(
-        'data-u1-report-value',
+        'data-ks1-report-value',
         '1'
       );
 
@@ -3707,7 +3707,7 @@ function createButtonIconSvg(state) {
     };
   }
 
-  async function resetU1ErrorDropdown({
+  async function resetKS1ErrorDropdown({
     closeDropdown = false,
   } = {}) {
     const state =
@@ -3741,11 +3741,11 @@ function createButtonIconSvg(state) {
           null
         ) {
           state.dropdown.removeAttribute(
-            'data-u1-error-dropdown'
+            'data-ks1-error-dropdown'
           );
         } else {
           state.dropdown.setAttribute(
-            'data-u1-error-dropdown',
+            'data-ks1-error-dropdown',
             state.previousDropdownMarker
           );
         }
@@ -3812,7 +3812,7 @@ function createButtonIconSvg(state) {
       }
 
       console.log(
-        '[U1 Extension] clicking:',
+        '[KS1 Extension] clicking:',
         item.textContent
           .trim()
           .slice(0, 40)
@@ -3889,55 +3889,55 @@ function createButtonIconSvg(state) {
   // - generated mw-css-* class names
   // - visible Swiper navigation arrows
   //
-  // The integration is reconciled idempotently. Existing U1 elements are
+  // The integration is reconciled idempotently. Existing KS1 elements are
   // reused and never rebuilt merely because MakerWorld caused another DOM
   // mutation.
 
-  const U1_WINDOW_MESSAGE_SOURCE =
+  const KS1_WINDOW_MESSAGE_SOURCE =
     'makerworld-to-snapmaker-u1';
 
-  const U1_UI_ADAPTER_VERSION =
+  const KS1_UI_ADAPTER_VERSION =
     2;
 
-  const U1_RECONCILE_DELAY_MS =
+  const KS1_RECONCILE_DELAY_MS =
     100;
 
-  const U1_RECONCILE_RETRY_DELAY_MS =
+  const KS1_RECONCILE_RETRY_DELAY_MS =
     250;
 
-  const U1_MAX_STARTUP_RETRIES =
+  const KS1_MAX_STARTUP_RETRIES =
     8;
 
-  let u1ReconcileTimer =
+  let ks1ReconcileTimer =
     null;
 
-  let u1StartupRetryCount =
+  let ks1StartupRetryCount =
     0;
 
-  let u1SwiperRefreshSequence =
+  let ks1SwiperRefreshSequence =
     0;
 
-  let u1UiDebugEnabled =
+  let ks1UiDebugEnabled =
     true;
 
-  let u1MainWorldReady =
+  let ks1MainWorldReady =
     false;
 
-  let lastU1UiReportSignature =
+  let lastKS1UiReportSignature =
     '';
 
-  const u1SwiperRefreshResults =
+  const ks1SwiperRefreshResults =
     new WeakMap();
 
-  const u1SwiperRepairResults =
+  const ks1SwiperRepairResults =
     new WeakMap();
 
   // ── Compact UI integration report ─────────────────────────────────────────────
 
-  function createU1UiIntegrationReport() {
+  function createKS1UiIntegrationReport() {
     return {
       adapterVersion:
-        U1_UI_ADAPTER_VERSION,
+        KS1_UI_ADAPTER_VERSION,
 
       pagePath:
         location.pathname,
@@ -3952,7 +3952,7 @@ function createButtonIconSvg(state) {
 
       summary: {
         code:
-          'U1-UI-WAITING',
+          'KS1-UI-WAITING',
 
         result:
           'waiting',
@@ -3994,18 +3994,18 @@ function createButtonIconSvg(state) {
           false,
 
         mainWorldReady:
-          u1MainWorldReady === true,
+          ks1MainWorldReady === true,
 
-        u1OptionBefore:
+        ks1OptionBefore:
           false,
 
-        u1OptionAction:
+        ks1OptionAction:
           'none',
 
-        u1OptionPresent:
+        ks1OptionPresent:
           false,
 
-        u1OptionVisible:
+        ks1OptionVisible:
           false,
 
         swiperRefreshResult:
@@ -4017,8 +4017,8 @@ function createButtonIconSvg(state) {
         swiperRepairResult:
           'not-needed',
 
-        u1ModeActive:
-          u1ModeActive === true,
+        ks1ModeActive:
+          ks1ModeActive === true,
 
         convertButtonState:
           'missing',
@@ -4029,7 +4029,7 @@ function createButtonIconSvg(state) {
     };
   }
 
-  function addU1UiIntegrationStage(
+  function addKS1UiIntegrationStage(
     report,
     stage,
     result,
@@ -4048,7 +4048,7 @@ function createButtonIconSvg(state) {
     });
   }
 
-  function getU1ConvertButtonState() {
+  function getKS1ConvertButtonState() {
     const button =
       findButton();
 
@@ -4099,31 +4099,31 @@ function createButtonIconSvg(state) {
     return 'ready';
   }
 
-  function finalizeU1UiIntegrationReport(
+  function finalizeKS1UiIntegrationReport(
     report
   ) {
     const summary =
       report.summary;
 
-    summary.u1ModeActive =
-      u1ModeActive === true;
+    summary.ks1ModeActive =
+      ks1ModeActive === true;
 
     summary.mainWorldReady =
-      u1MainWorldReady === true;
+      ks1MainWorldReady === true;
 
     summary.convertButtonState =
-      getU1ConvertButtonState();
+      getKS1ConvertButtonState();
 
     if (!summary.primaryButtonFound) {
       if (summary.retryPending) {
         summary.code =
-          'U1-UI-WAITING';
+          'KS1-UI-WAITING';
 
         summary.result =
           'waiting';
       } else {
         summary.code =
-          'U1-UI-PRIMARY-MISSING';
+          'KS1-UI-PRIMARY-MISSING';
 
         summary.result =
           'warning';
@@ -4133,22 +4133,22 @@ function createButtonIconSvg(state) {
     ) {
       if (summary.retryPending) {
         summary.code =
-          'U1-UI-WAITING';
+          'KS1-UI-WAITING';
 
         summary.result =
           'waiting';
       } else {
         summary.code =
-          'U1-UI-PRINTER-CONTAINER-MISSING';
+          'KS1-UI-PRINTER-CONTAINER-MISSING';
 
         summary.result =
           'warning';
       }
     } else if (
-      !summary.u1OptionPresent
+      !summary.ks1OptionPresent
     ) {
       summary.code =
-        'U1-UI-U1-OPTION-MISSING';
+        'KS1-UI-KS1-OPTION-MISSING';
 
       summary.result =
         'warning';
@@ -4157,7 +4157,7 @@ function createButtonIconSvg(state) {
       'update-failed'
     ) {
       summary.code =
-        'U1-UI-SWIPER-REFRESH-FAILED';
+        'KS1-UI-SWIPER-REFRESH-FAILED';
 
       summary.result =
         'warning';
@@ -4166,10 +4166,10 @@ function createButtonIconSvg(state) {
       'resize-fallback-dispatched'
     ) {
       summary.code =
-        'U1-UI-SWIPER-REFRESH-FALLBACK';
+        'KS1-UI-SWIPER-REFRESH-FALLBACK';
 
       summary.result =
-        summary.u1OptionVisible
+        summary.ks1OptionVisible
           ? 'ok'
           : 'warning';
     } else if (
@@ -4177,37 +4177,37 @@ function createButtonIconSvg(state) {
       'repair-failed'
     ) {
       summary.code =
-        'U1-UI-SWIPER-REPAIR-FAILED';
+        'KS1-UI-SWIPER-REPAIR-FAILED';
 
       summary.result =
         'warning';
     } else if (
-      !summary.u1OptionVisible &&
+      !summary.ks1OptionVisible &&
       summary.swiperRepairResult ===
         'requested'
     ) {
       summary.code =
-        'U1-UI-SWIPER-REPAIR-PENDING';
+        'KS1-UI-SWIPER-REPAIR-PENDING';
 
       summary.result =
         'waiting';
     } else if (
-      !summary.u1OptionVisible
+      !summary.ks1OptionVisible
     ) {
       summary.code =
-        'U1-UI-U1-OPTION-HIDDEN';
+        'KS1-UI-KS1-OPTION-HIDDEN';
 
       summary.result =
         'warning';
     } else {
       summary.code =
-        'U1-UI-OK';
+        'KS1-UI-OK';
 
       summary.result =
         'ok';
     }
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Finished',
       summary.result,
@@ -4220,7 +4220,7 @@ function createButtonIconSvg(state) {
     return report;
   }
 
-  function createU1UiReportSignature(
+  function createKS1UiReportSignature(
     report
   ) {
     const summary =
@@ -4272,14 +4272,14 @@ function createButtonIconSvg(state) {
       mainWorldReady:
         summary.mainWorldReady,
 
-      u1OptionAction:
-        summary.u1OptionAction,
+      ks1OptionAction:
+        summary.ks1OptionAction,
 
-      u1OptionPresent:
-        summary.u1OptionPresent,
+      ks1OptionPresent:
+        summary.ks1OptionPresent,
 
-      u1OptionVisible:
-        summary.u1OptionVisible,
+      ks1OptionVisible:
+        summary.ks1OptionVisible,
 
       swiperRefreshResult:
         summary.swiperRefreshResult,
@@ -4290,8 +4290,8 @@ function createButtonIconSvg(state) {
       swiperRepairResult:
         summary.swiperRepairResult,
 
-      u1ModeActive:
-        summary.u1ModeActive,
+      ks1ModeActive:
+        summary.ks1ModeActive,
 
       convertButtonState:
         summary.convertButtonState,
@@ -4301,7 +4301,7 @@ function createButtonIconSvg(state) {
     });
   }
 
-  function formatU1UiStageDetails(
+  function formatKS1UiStageDetails(
     details
   ) {
     const entries =
@@ -4329,26 +4329,26 @@ function createButtonIconSvg(state) {
       .join(' · ');
   }
 
-  function logU1UiIntegrationReport(
+  function logKS1UiIntegrationReport(
     report
   ) {
-    finalizeU1UiIntegrationReport(
+    finalizeKS1UiIntegrationReport(
       report
     );
 
     const signature =
-      createU1UiReportSignature(
+      createKS1UiReportSignature(
         report
       );
 
     if (
       signature ===
-      lastU1UiReportSignature
+      lastKS1UiReportSignature
     ) {
       return;
     }
 
-    lastU1UiReportSignature =
+    lastKS1UiReportSignature =
       signature;
 
     const isProblem =
@@ -4358,7 +4358,7 @@ function createButtonIconSvg(state) {
     // When the normal Debug Report is disabled, keep successful and temporary
     // waiting reports silent. Real UI integration warnings remain visible.
     if (
-      !u1UiDebugEnabled &&
+      !ks1UiDebugEnabled &&
       !isProblem
     ) {
       return;
@@ -4366,7 +4366,7 @@ function createButtonIconSvg(state) {
 
     const title =
       [
-        '[U1 Extension] MakerWorld UI Integration',
+        '[KS1 Extension] MakerWorld UI Integration',
         `Adapter v${report.adapterVersion}`,
         report.summary.code,
       ].join(' · ');
@@ -4391,7 +4391,7 @@ function createButtonIconSvg(state) {
             item.result,
 
           Details:
-            formatU1UiStageDetails(
+            formatKS1UiStageDetails(
               item.details
             ),
         })
@@ -4417,18 +4417,18 @@ function createButtonIconSvg(state) {
     console.groupEnd();
   }
 
-  async function initializeU1UiDebugSetting() {
+  async function initializeKS1UiDebugSetting() {
     const settings =
       await getStorageSyncSafe({
         debugReport:
           true,
       });
 
-    u1UiDebugEnabled =
+    ks1UiDebugEnabled =
       settings.debugReport !== false;
   }
 
-  void initializeU1UiDebugSetting();
+  void initializeKS1UiDebugSetting();
 
   try {
     chrome.storage.onChanged.addListener(
@@ -4440,20 +4440,20 @@ function createButtonIconSvg(state) {
           return;
         }
 
-        u1UiDebugEnabled =
+        ks1UiDebugEnabled =
           changes.debugReport.newValue !==
           false;
 
         // Allow the current state to be emitted once under the new setting.
-        lastU1UiReportSignature =
+        lastKS1UiReportSignature =
           '';
 
-        scheduleU1Reconcile(0);
+        scheduleKS1Reconcile(0);
       }
     );
   } catch (error) {
     console.warn(
-      '[U1 Extension] Could not watch Debug Report setting changes:',
+      '[KS1 Extension] Could not watch Debug Report setting changes:',
       error
     );
   }
@@ -4607,7 +4607,7 @@ function createButtonIconSvg(state) {
     let activeSlideCount =
       0;
 
-    let u1SlideCount =
+    let ks1SlideCount =
       0;
 
     const labels =
@@ -4621,10 +4621,10 @@ function createButtonIconSvg(state) {
 
       if (
         slide.hasAttribute(
-          'data-u1-slide'
+          'data-ks1-slide'
         )
       ) {
-        u1SlideCount++;
+        ks1SlideCount++;
         continue;
       }
 
@@ -4743,7 +4743,7 @@ function createButtonIconSvg(state) {
 
     // Ignore wrappers already containing our injected slide.
     score -=
-      u1SlideCount * 25;
+      ks1SlideCount * 25;
 
     score -=
       mediaSlideCount * 8;
@@ -4833,9 +4833,9 @@ function createButtonIconSvg(state) {
     );
   }
 
-  // ── U1 slide creation and state synchronization ───────────────────────────────
+  // ── KS1 slide creation and state synchronization ───────────────────────────────
 
-  function getU1SlideInner(
+  function getKS1SlideInner(
     slide
   ) {
     if (!slide) {
@@ -4844,7 +4844,7 @@ function createButtonIconSvg(state) {
 
     return (
       slide.querySelector(
-        '[data-u1-printer-label]'
+        '[data-ks1-printer-label]'
       ) ||
       slide.querySelector(
         ':scope > div > div'
@@ -4853,7 +4853,7 @@ function createButtonIconSvg(state) {
     );
   }
 
-  function isU1SlideVisibleInSwiper(
+  function isKS1SlideVisibleInSwiper(
     wrapper,
     slide
   ) {
@@ -4892,28 +4892,28 @@ function createButtonIconSvg(state) {
     );
   }
 
-  function syncU1PrinterSelection(
+  function syncKS1PrinterSelection(
     wrapper
   ) {
     if (!wrapper) {
       return;
     }
 
-    const u1Slide =
+    const ks1Slide =
       wrapper.querySelector(
-        ':scope > [data-u1-slide]'
+        ':scope > [data-ks1-slide]'
       );
 
-    const u1Inner =
-      getU1SlideInner(
-        u1Slide
+    const ks1Inner =
+      getKS1SlideInner(
+        ks1Slide
       );
 
-    if (!u1Inner) {
+    if (!ks1Inner) {
       return;
     }
 
-    if (u1ModeActive) {
+    if (ks1ModeActive) {
       for (
         const nativeSlide of
         getDirectSwiperSlides(
@@ -4922,7 +4922,7 @@ function createButtonIconSvg(state) {
       ) {
         if (
           nativeSlide ===
-          u1Slide
+          ks1Slide
         ) {
           continue;
         }
@@ -4939,11 +4939,11 @@ function createButtonIconSvg(state) {
           );
       }
 
-      u1Inner.classList.add(
+      ks1Inner.classList.add(
         'selected'
       );
     } else {
-      u1Inner.classList.remove(
+      ks1Inner.classList.remove(
         'selected'
       );
     }
@@ -4955,40 +4955,40 @@ function createButtonIconSvg(state) {
     if (
       !wrapper ||
       wrapper.dataset
-        .u1PrinterDelegated === '1'
+        .ks1PrinterDelegated === '1'
     ) {
       return false;
     }
 
-    wrapper.dataset.u1PrinterDelegated =
+    wrapper.dataset.ks1PrinterDelegated =
       '1';
 
     wrapper.addEventListener(
       'click',
       event => {
-        const clickedU1Slide =
+        const clickedKS1Slide =
           event.target.closest(
-            '[data-u1-slide]'
+            '[data-ks1-slide]'
           );
 
         if (
-          clickedU1Slide &&
+          clickedKS1Slide &&
           wrapper.contains(
-            clickedU1Slide
+            clickedKS1Slide
           )
         ) {
           event.preventDefault();
           event.stopPropagation();
 
-          if (!u1ModeActive) {
-            setU1Mode(true);
+          if (!ks1ModeActive) {
+            setKS1Mode(true);
           } else {
             updateButton();
           }
 
-          // Resolve the current U1 element dynamically instead of retaining
+          // Resolve the current KS1 element dynamically instead of retaining
           // references to an older slide that React may have removed.
-          syncU1PrinterSelection(
+          syncKS1PrinterSelection(
             wrapper
           );
 
@@ -4997,7 +4997,7 @@ function createButtonIconSvg(state) {
 
         const clickedNativeSlide =
           event.target.closest(
-            '.swiper-slide:not([data-u1-slide])'
+            '.swiper-slide:not([data-ks1-slide])'
           );
 
         if (
@@ -5005,12 +5005,12 @@ function createButtonIconSvg(state) {
           wrapper.contains(
             clickedNativeSlide
           ) &&
-          u1ModeActive
+          ks1ModeActive
         ) {
           // Do not block MakerWorld's own native printer-selection handler.
-          setU1Mode(false);
+          setKS1Mode(false);
 
-          syncU1PrinterSelection(
+          syncKS1PrinterSelection(
             wrapper
           );
         }
@@ -5020,11 +5020,11 @@ function createButtonIconSvg(state) {
     return true;
   }
 
-  function requestU1MainWorldStatus() {
+  function requestKS1MainWorldStatus() {
     window.postMessage(
       {
         source:
-          U1_WINDOW_MESSAGE_SOURCE,
+          KS1_WINDOW_MESSAGE_SOURCE,
 
         action:
           'main-world-status-request',
@@ -5033,7 +5033,7 @@ function createButtonIconSvg(state) {
     );
   }
 
-  function postU1PrinterSwiperRefreshRequest(
+  function postKS1PrinterSwiperRefreshRequest(
     wrapper,
     wrapperId
   ) {
@@ -5043,7 +5043,7 @@ function createButtonIconSvg(state) {
     if (
       !wrapper ||
       !wrapper.isConnected ||
-      !/^u1-[a-z0-9-]{1,80}$/i.test(
+      !/^ks1-[a-z0-9-]{1,80}$/i.test(
         normalizedId
       )
     ) {
@@ -5053,7 +5053,7 @@ function createButtonIconSvg(state) {
     window.postMessage(
       {
         source:
-          U1_WINDOW_MESSAGE_SOURCE,
+          KS1_WINDOW_MESSAGE_SOURCE,
 
         action:
           'refresh-printer-swiper',
@@ -5067,10 +5067,10 @@ function createButtonIconSvg(state) {
     return true;
   }
 
-  function resendPendingU1PrinterSwiperRefreshes() {
+  function resendPendingKS1PrinterSwiperRefreshes() {
     const pendingWrappers =
       document.querySelectorAll(
-        '[data-u1-refresh-id]'
+        '[data-ks1-refresh-id]'
       );
 
     for (
@@ -5079,12 +5079,12 @@ function createButtonIconSvg(state) {
     ) {
       const wrapperId =
         String(
-          wrapper.dataset.u1RefreshId ||
+          wrapper.dataset.ks1RefreshId ||
           ''
         );
 
       const refreshState =
-        u1SwiperRefreshResults.get(
+        ks1SwiperRefreshResults.get(
           wrapper
         );
 
@@ -5097,7 +5097,7 @@ function createButtonIconSvg(state) {
         continue;
       }
 
-      postU1PrinterSwiperRefreshRequest(
+      postKS1PrinterSwiperRefreshRequest(
         wrapper,
         wrapperId
       );
@@ -5115,7 +5115,7 @@ function createButtonIconSvg(state) {
     }
 
     const existingState =
-      u1SwiperRepairResults.get(
+      ks1SwiperRepairResults.get(
         wrapper
       );
 
@@ -5127,18 +5127,18 @@ function createButtonIconSvg(state) {
 
     const wrapperId =
       [
-        'u1',
+        'ks1',
         'repair',
         Date.now().toString(36),
         (
-          ++u1SwiperRefreshSequence
+          ++ks1SwiperRefreshSequence
         ).toString(36),
       ].join('-');
 
-    wrapper.dataset.u1RepairId =
+    wrapper.dataset.ks1RepairId =
       wrapperId;
 
-    u1SwiperRepairResults.set(
+    ks1SwiperRepairResults.set(
       wrapper,
       {
         wrapperId,
@@ -5154,7 +5154,7 @@ function createButtonIconSvg(state) {
     window.postMessage(
       {
         source:
-          U1_WINDOW_MESSAGE_SOURCE,
+          KS1_WINDOW_MESSAGE_SOURCE,
 
         action:
           'repair-printer-swiper-visibility',
@@ -5180,17 +5180,17 @@ function createButtonIconSvg(state) {
 
     const wrapperId =
       [
-        'u1',
+        'ks1',
         Date.now().toString(36),
         (
-          ++u1SwiperRefreshSequence
+          ++ks1SwiperRefreshSequence
         ).toString(36),
       ].join('-');
 
-    wrapper.dataset.u1RefreshId =
+    wrapper.dataset.ks1RefreshId =
       wrapperId;
 
-    u1SwiperRefreshResults.set(
+    ks1SwiperRefreshResults.set(
       wrapper,
       {
         wrapperId,
@@ -5203,7 +5203,7 @@ function createButtonIconSvg(state) {
       }
     );
 
-    postU1PrinterSwiperRefreshRequest(
+    postKS1PrinterSwiperRefreshRequest(
       wrapper,
       wrapperId
     );
@@ -5211,7 +5211,7 @@ function createButtonIconSvg(state) {
     return wrapperId;
   }
 
-  function injectOrReuseU1PrinterSlide(
+  function injectOrReuseKS1PrinterSlide(
     wrapper
   ) {
     if (
@@ -5237,7 +5237,7 @@ function createButtonIconSvg(state) {
 
     const existingSlide =
       wrapper.querySelector(
-        ':scope > [data-u1-slide]'
+        ':scope > [data-ks1-slide]'
       );
 
     if (existingSlide) {
@@ -5248,7 +5248,7 @@ function createButtonIconSvg(state) {
         wrapper
       );
 
-      syncU1PrinterSelection(
+      syncKS1PrinterSelection(
         wrapper
       );
 
@@ -5355,10 +5355,10 @@ function createButtonIconSvg(state) {
       slide.className =
         'swiper-slide';
 
-      slide.dataset.u1Slide =
+      slide.dataset.ks1Slide =
         '1';
 
-      slide.dataset.u1PrinterOption =
+      slide.dataset.ks1PrinterOption =
         '1';
 
       const outer =
@@ -5377,11 +5377,11 @@ function createButtonIconSvg(state) {
       inner.className =
         innerClassName;
 
-      inner.dataset.u1PrinterLabel =
+      inner.dataset.ks1PrinterLabel =
         '1';
 
       inner.textContent =
-        'Snapmaker U1';
+        'Snapmaker KS1';
 
       outer.appendChild(
         inner
@@ -5405,7 +5405,7 @@ function createButtonIconSvg(state) {
         wrapper
       );
 
-      syncU1PrinterSelection(
+      syncKS1PrinterSelection(
         wrapper
       );
 
@@ -5441,7 +5441,7 @@ function createButtonIconSvg(state) {
         event.source !== window ||
         !event.data ||
         event.data.source !==
-          U1_WINDOW_MESSAGE_SOURCE
+          KS1_WINDOW_MESSAGE_SOURCE
       ) {
         return;
       }
@@ -5451,18 +5451,18 @@ function createButtonIconSvg(state) {
           'main-world-ready'
       ) {
         const readinessChanged =
-          !u1MainWorldReady;
+          !ks1MainWorldReady;
 
-        u1MainWorldReady =
+        ks1MainWorldReady =
           true;
 
         // A refresh request may have been sent before injected.js installed
         // its Main World listener. Resend only requests which are still
         // explicitly pending; completed refreshes are never repeated.
-        resendPendingU1PrinterSwiperRefreshes();
+        resendPendingKS1PrinterSwiperRefreshes();
 
         if (readinessChanged) {
-          scheduleU1Reconcile(0);
+          scheduleKS1Reconcile(0);
         }
 
         return;
@@ -5490,7 +5490,7 @@ function createButtonIconSvg(state) {
         );
 
       if (
-        !/^u1-[a-z0-9-]{1,80}$/i.test(
+        !/^ks1-[a-z0-9-]{1,80}$/i.test(
           wrapperId
         )
       ) {
@@ -5499,8 +5499,8 @@ function createButtonIconSvg(state) {
 
       const markerAttribute =
         isRepairResult
-          ? 'data-u1-repair-id'
-          : 'data-u1-refresh-id';
+          ? 'data-ks1-repair-id'
+          : 'data-ks1-refresh-id';
 
       const wrapper =
         Array.from(
@@ -5512,9 +5512,9 @@ function createButtonIconSvg(state) {
             (
               isRepairResult
                 ? candidate.dataset
-                    .u1RepairId
+                    .ks1RepairId
                 : candidate.dataset
-                    .u1RefreshId
+                    .ks1RefreshId
             ) === wrapperId
         );
 
@@ -5542,43 +5542,43 @@ function createButtonIconSvg(state) {
       };
 
       if (isRepairResult) {
-        u1SwiperRepairResults.set(
+        ks1SwiperRepairResults.set(
           wrapper,
           resultState
         );
 
         if (
-          wrapper.dataset.u1RepairId ===
+          wrapper.dataset.ks1RepairId ===
           wrapperId
         ) {
           delete wrapper.dataset
-            .u1RepairId;
+            .ks1RepairId;
         }
       } else {
-        u1SwiperRefreshResults.set(
+        ks1SwiperRefreshResults.set(
           wrapper,
           resultState
         );
 
         if (
-          wrapper.dataset.u1RefreshId ===
+          wrapper.dataset.ks1RefreshId ===
           wrapperId
         ) {
           delete wrapper.dataset
-            .u1RefreshId;
+            .ks1RefreshId;
         }
       }
 
       // Recheck visibility and emit one changed-state report after the
       // Main World has completed its Swiper update.
-      scheduleU1Reconcile(0);
+      scheduleKS1Reconcile(0);
     }
   );
 
 
   // ── Idempotent reconciliation ─────────────────────────────────────────────────
 
-  function reconcileU1PrinterIntegration() {
+  function reconcileKS1PrinterIntegration() {
     if (
       !location.pathname.includes(
         '/models/'
@@ -5588,9 +5588,9 @@ function createButtonIconSvg(state) {
     }
 
     const report =
-      createU1UiIntegrationReport();
+      createKS1UiIntegrationReport();
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Initialize',
       'ok',
@@ -5599,7 +5599,7 @@ function createButtonIconSvg(state) {
           true,
 
         adapterVersion:
-          U1_UI_ADAPTER_VERSION,
+          KS1_UI_ADAPTER_VERSION,
       }
     );
 
@@ -5645,7 +5645,7 @@ function createButtonIconSvg(state) {
         )
       );
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Find primary button',
       primaryButton
@@ -5676,21 +5676,21 @@ function createButtonIconSvg(state) {
 
     if (!primaryButton) {
       const retryPending =
-        u1StartupRetryCount <
-        U1_MAX_STARTUP_RETRIES;
+        ks1StartupRetryCount <
+        KS1_MAX_STARTUP_RETRIES;
 
       report.summary.retryPending =
         retryPending;
 
       if (retryPending) {
-        u1StartupRetryCount++;
+        ks1StartupRetryCount++;
 
-        scheduleU1Reconcile(
-          U1_RECONCILE_RETRY_DELAY_MS
+        scheduleKS1Reconcile(
+          KS1_RECONCILE_RETRY_DELAY_MS
         );
       }
 
-      logU1UiIntegrationReport(
+      logKS1UiIntegrationReport(
         report
       );
 
@@ -5720,7 +5720,7 @@ function createButtonIconSvg(state) {
         ? 'swiper'
         : null;
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Find printer container',
       match.wrapper
@@ -5741,28 +5741,28 @@ function createButtonIconSvg(state) {
 
     if (!match.wrapper) {
       const retryPending =
-        u1StartupRetryCount <
-        U1_MAX_STARTUP_RETRIES;
+        ks1StartupRetryCount <
+        KS1_MAX_STARTUP_RETRIES;
 
       report.summary.retryPending =
         retryPending;
 
       if (retryPending) {
-        u1StartupRetryCount++;
+        ks1StartupRetryCount++;
 
-        scheduleU1Reconcile(
-          U1_RECONCILE_RETRY_DELAY_MS
+        scheduleKS1Reconcile(
+          KS1_RECONCILE_RETRY_DELAY_MS
         );
       }
 
-      logU1UiIntegrationReport(
+      logKS1UiIntegrationReport(
         report
       );
 
       return;
     }
 
-    u1StartupRetryCount =
+    ks1StartupRetryCount =
       0;
 
     const wrapper =
@@ -5773,9 +5773,9 @@ function createButtonIconSvg(state) {
         wrapper
       );
 
-    const existingU1Slides =
+    const existingKS1Slides =
       wrapper.querySelectorAll(
-        ':scope > [data-u1-slide]'
+        ':scope > [data-ks1-slide]'
       );
 
     const labels =
@@ -5783,7 +5783,7 @@ function createButtonIconSvg(state) {
         .filter(
           slide =>
             !slide.hasAttribute(
-              'data-u1-slide'
+              'data-ks1-slide'
             )
         )
         .map(
@@ -5806,10 +5806,10 @@ function createButtonIconSvg(state) {
       );
 
     report.summary
-      .u1OptionBefore =
-      existingU1Slides.length > 0;
+      .ks1OptionBefore =
+      existingKS1Slides.length > 0;
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Inspect printer container',
       'ok',
@@ -5821,35 +5821,35 @@ function createButtonIconSvg(state) {
           report.summary
             .navigationPresent,
 
-        existingU1Options:
-          existingU1Slides.length,
+        existingKS1Options:
+          existingKS1Slides.length,
       }
     );
 
-    if (existingU1Slides.length > 1) {
+    if (existingKS1Slides.length > 1) {
       console.warn(
-        '[U1 Extension] Multiple Snapmaker U1 printer entries detected in the active printer wrapper.'
+        '[KS1 Extension] Multiple Snapmaker KS1 printer entries detected in the active printer wrapper.'
       );
     }
 
     const integration =
-      injectOrReuseU1PrinterSlide(
+      injectOrReuseKS1PrinterSlide(
         wrapper
       );
 
     report.summary
-      .u1OptionAction =
+      .ks1OptionAction =
       integration.action;
 
     report.summary
-      .u1OptionPresent =
+      .ks1OptionPresent =
       Boolean(
         integration.slide
       );
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
-      'Insert or reuse U1 option',
+      'Insert or reuse KS1 option',
       integration.slide
         ? 'ok'
         : 'failed',
@@ -5867,7 +5867,7 @@ function createButtonIconSvg(state) {
     );
 
     if (!integration.slide) {
-      logU1UiIntegrationReport(
+      logKS1UiIntegrationReport(
         report
       );
 
@@ -5882,24 +5882,24 @@ function createButtonIconSvg(state) {
         wrapper
       );
 
-    syncU1PrinterSelection(
+    syncKS1PrinterSelection(
       wrapper
     );
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
-      'Synchronize U1 selection',
+      'Synchronize KS1 selection',
       'ok',
       {
         modeActive:
-          u1ModeActive,
+          ks1ModeActive,
 
         handlerAdded,
       }
     );
 
     const refreshState =
-      u1SwiperRefreshResults.get(
+      ks1SwiperRefreshResults.get(
         wrapper
       );
 
@@ -5912,7 +5912,7 @@ function createButtonIconSvg(state) {
           : 'not-requested'
       );
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Refresh printer layout',
       (
@@ -5934,7 +5934,7 @@ function createButtonIconSvg(state) {
             .swiperRefreshResult,
 
         mainWorldReady:
-          u1MainWorldReady,
+          ks1MainWorldReady,
 
         swiperFound:
           refreshState?.details
@@ -5949,36 +5949,36 @@ function createButtonIconSvg(state) {
     );
 
     report.summary
-      .u1OptionVisible =
-      isU1SlideVisibleInSwiper(
+      .ks1OptionVisible =
+      isKS1SlideVisibleInSwiper(
         wrapper,
         integration.slide
       );
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
-      'Check U1 visibility',
+      'Check KS1 visibility',
       report.summary
-        .u1OptionVisible
+        .ks1OptionVisible
         ? 'ok'
         : 'warning',
       {
         visible:
           report.summary
-            .u1OptionVisible,
+            .ks1OptionVisible,
       }
     );
 
     let repairState =
-      u1SwiperRepairResults.get(
+      ks1SwiperRepairResults.get(
         wrapper
       );
 
     // Trigger the stronger positioning repair only after the normal Swiper
-    // refresh has completed successfully and the U1 option is still outside
+    // refresh has completed successfully and the KS1 option is still outside
     // the visible viewport.
     if (
-      !report.summary.u1OptionVisible &&
+      !report.summary.ks1OptionVisible &&
       report.summary
         .swiperRefreshResult !==
         'requested' &&
@@ -5991,7 +5991,7 @@ function createButtonIconSvg(state) {
 
       if (repairId) {
         repairState =
-          u1SwiperRepairResults.get(
+          ks1SwiperRepairResults.get(
             wrapper
           );
       }
@@ -6006,7 +6006,7 @@ function createButtonIconSvg(state) {
       repairState?.result ||
       'not-needed';
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Repair printer visibility',
       !repairState
@@ -6043,7 +6043,7 @@ function createButtonIconSvg(state) {
       }
     );
 
-    if (u1ModeActive) {
+    if (ks1ModeActive) {
       // updateButton() is internally idempotent and only repairs the button
       // if MakerWorld replaced or changed its DOM representation.
       updateButton();
@@ -6051,9 +6051,9 @@ function createButtonIconSvg(state) {
 
     report.summary
       .convertButtonState =
-      getU1ConvertButtonState();
+      getKS1ConvertButtonState();
 
-    addU1UiIntegrationStage(
+    addKS1UiIntegrationStage(
       report,
       'Synchronize convert button',
       'ok',
@@ -6062,33 +6062,33 @@ function createButtonIconSvg(state) {
           report.summary
             .convertButtonState,
 
-        u1ModeActive:
-          u1ModeActive,
+        ks1ModeActive:
+          ks1ModeActive,
       }
     );
 
-    logU1UiIntegrationReport(
+    logKS1UiIntegrationReport(
       report
     );
   }
 
-  function scheduleU1Reconcile(
+  function scheduleKS1Reconcile(
     delay =
-      U1_RECONCILE_DELAY_MS
+      KS1_RECONCILE_DELAY_MS
   ) {
     if (
-      u1ReconcileTimer !== null
+      ks1ReconcileTimer !== null
     ) {
       return;
     }
 
-    u1ReconcileTimer =
+    ks1ReconcileTimer =
       window.setTimeout(
         () => {
-          u1ReconcileTimer =
+          ks1ReconcileTimer =
             null;
 
-          reconcileU1PrinterIntegration();
+          reconcileKS1PrinterIntegration();
         },
         Math.max(
           0,
@@ -6121,10 +6121,10 @@ function createButtonIconSvg(state) {
       injectedSlide =
         null;
 
-      u1StartupRetryCount =
+      ks1StartupRetryCount =
         0;
 
-      lastU1UiReportSignature =
+      lastKS1UiReportSignature =
         '';
 
       _makerWorld3mfSelectedForPage =
@@ -6133,11 +6133,11 @@ function createButtonIconSvg(state) {
       // Do not reset an active conversion because of a transient React
       // rerender or route transition while the conversion is still running.
       if (!isConverting) {
-        setU1Mode(false);
+        setKS1Mode(false);
       }
     }
 
-    scheduleU1Reconcile();
+    scheduleKS1Reconcile();
   }).observe(
     observerRoot,
     {
@@ -6152,7 +6152,7 @@ function createButtonIconSvg(state) {
   window.addEventListener(
     'resize',
     () => {
-      scheduleU1Reconcile();
+      scheduleKS1Reconcile();
     },
     {
       passive:
@@ -6163,7 +6163,7 @@ function createButtonIconSvg(state) {
   window.addEventListener(
     'pageshow',
     () => {
-      scheduleU1Reconcile(0);
+      scheduleKS1Reconcile(0);
     }
   );
 
@@ -6174,7 +6174,7 @@ function createButtonIconSvg(state) {
         document.visibilityState ===
         'visible'
       ) {
-        scheduleU1Reconcile();
+        scheduleKS1Reconcile();
       }
     }
   );
@@ -6183,10 +6183,10 @@ function createButtonIconSvg(state) {
   //
   // injected.js also sends an unsolicited ready notification after installing
   // its listener. Together, both directions make the startup order irrelevant.
-  requestU1MainWorldStatus();
+  requestKS1MainWorldStatus();
 
   // Initial reconciliation. MakerWorld may render the primary button and the
   // printer filter in separate React passes, so a limited startup retry is
   // used when either structure is not available yet.
-  scheduleU1Reconcile(0);
+  scheduleKS1Reconcile(0);
 })();

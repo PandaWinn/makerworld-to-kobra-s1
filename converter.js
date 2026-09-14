@@ -1,7 +1,7 @@
-// Main conversion orchestrator for MakerWorld/Bambu 3MF → Snapmaker U1 3MF.
+// Main conversion orchestrator for MakerWorld/Bambu 3MF → Snapmaker KS1 3MF.
 //
 // Keeps the high-level workflow in one place:
-// parse source project → build U1 project → rewrite metadata → write output ZIP.
+// parse source project → build KS1 project → rewrite metadata → write output ZIP.
 
 const TARGET_FILAMENTS = 4;
 
@@ -12,46 +12,46 @@ const TARGET_FILAMENTS = 4;
 // Tracks each conversion stage, normalizes failures into stable error codes,
 // creates copy-ready diagnostics and supports controlled developer fault tests.
 
-const U1_ERROR_CODES = Object.freeze({
-  UNKNOWN: 'U1-UNKNOWN-001',
+const KS1_ERROR_CODES = Object.freeze({
+  UNKNOWN: 'KS1-UNKNOWN-001',
 
-  RUNTIME_UNAVAILABLE: 'U1-RUNTIME-001',
-  STORAGE_UNAVAILABLE: 'U1-RUNTIME-002',
+  RUNTIME_UNAVAILABLE: 'KS1-RUNTIME-001',
+  STORAGE_UNAVAILABLE: 'KS1-RUNTIME-002',
 
-  DOWNLOAD_TRIGGER_FAILED: 'U1-DL-001',
-  DOWNLOAD_INTERCEPT_FAILED: 'U1-DL-002',
-  DOWNLOAD_HTTP_FAILED: 'U1-DL-003',
-  DOWNLOAD_TIMEOUT: 'U1-DL-004',
-  OUTPUT_DOWNLOAD_FAILED: 'U1-DL-005',
+  DOWNLOAD_TRIGGER_FAILED: 'KS1-DL-001',
+  DOWNLOAD_INTERCEPT_FAILED: 'KS1-DL-002',
+  DOWNLOAD_HTTP_FAILED: 'KS1-DL-003',
+  DOWNLOAD_TIMEOUT: 'KS1-DL-004',
+  OUTPUT_DOWNLOAD_FAILED: 'KS1-DL-005',
 
-  INPUT_INVALID: 'U1-INPUT-001',
-  ZIP_READ_FAILED: 'U1-ZIP-001',
-  PROJECT_PARSE_FAILED: 'U1-PARSE-001',
-  PROJECT_SETTINGS_MISSING: 'U1-PARSE-002',
+  INPUT_INVALID: 'KS1-INPUT-001',
+  ZIP_READ_FAILED: 'KS1-ZIP-001',
+  PROJECT_PARSE_FAILED: 'KS1-PARSE-001',
+  PROJECT_SETTINGS_MISSING: 'KS1-PARSE-002',
 
-  PROFILE_RESOLUTION_FAILED: 'U1-PROFILE-001',
-  PROFILE_LOAD_FAILED: 'U1-PROFILE-002',
+  PROFILE_RESOLUTION_FAILED: 'KS1-PROFILE-001',
+  PROFILE_LOAD_FAILED: 'KS1-PROFILE-002',
 
-  PROCESS_MERGE_FAILED: 'U1-BUILD-001',
-  ARRAY_NORMALIZATION_FAILED: 'U1-BUILD-002',
-  FILAMENT_NORMALIZATION_FAILED: 'U1-BUILD-003',
-  COMPATIBILITY_FAILED: 'U1-BUILD-004',
-  PRINTER_PROFILE_FAILED: 'U1-BUILD-005',
-  PROJECT_BUILD_FAILED: 'U1-BUILD-006',
+  PROCESS_MERGE_FAILED: 'KS1-BUILD-001',
+  ARRAY_NORMALIZATION_FAILED: 'KS1-BUILD-002',
+  FILAMENT_NORMALIZATION_FAILED: 'KS1-BUILD-003',
+  COMPATIBILITY_FAILED: 'KS1-BUILD-004',
+  PRINTER_PROFILE_FAILED: 'KS1-BUILD-005',
+  PROJECT_BUILD_FAILED: 'KS1-BUILD-006',
 
-  METADATA_REWRITE_FAILED: 'U1-META-001',
-  ZIP_WRITE_FAILED: 'U1-ZIP-002',
+  METADATA_REWRITE_FAILED: 'KS1-META-001',
+  ZIP_WRITE_FAILED: 'KS1-ZIP-002',
 
-  REPORT_FAILED: 'U1-REPORT-001',
+  REPORT_FAILED: 'KS1-REPORT-001',
 });
 
-const U1_DIAGNOSTIC_STAGE_STATUS = Object.freeze({
+const KS1_DIAGNOSTIC_STAGE_STATUS = Object.freeze({
   RUNNING: 'running',
   OK: 'ok',
   FAILED: 'failed',
 });
 
-const U1_DIAGNOSTIC_STAGES = Object.freeze({
+const KS1_DIAGNOSTIC_STAGES = Object.freeze({
   CAPTURE_DOWNLOAD:
     'capture-makerworld-download',
 
@@ -86,7 +86,7 @@ const U1_DIAGNOSTIC_STAGES = Object.freeze({
     'parse-source-project',
 
   BUILD_PROJECT:
-    'build-u1-project',
+    'build-ks1-project',
 
   REWRITE_METADATA:
     'rewrite-project-metadata',
@@ -104,70 +104,70 @@ const U1_DIAGNOSTIC_STAGES = Object.freeze({
     'conversion-finished',
 });
 
-const U1_DIAGNOSTIC_STAGE_LABELS = Object.freeze({
-  [U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD]:
+const KS1_DIAGNOSTIC_STAGE_LABELS = Object.freeze({
+  [KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD]:
     'Capture MakerWorld download',
 
-  [U1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE]:
+  [KS1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE]:
     'Read captured MakerWorld response',
 
-  [U1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE]:
+  [KS1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE]:
     'Download source 3MF from MakerWorld CDN',
 
-  [U1_DIAGNOSTIC_STAGES.READ_SETTINGS]:
+  [KS1_DIAGNOSTIC_STAGES.READ_SETTINGS]:
     'Read extension settings',
 
-  [U1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE]:
+  [KS1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE]:
     'Load selected printer profile',
 
-  [U1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD]:
+  [KS1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD]:
     'Start converted file download',
 
-  [U1_DIAGNOSTIC_STAGES.INITIALIZE]:
+  [KS1_DIAGNOSTIC_STAGES.INITIALIZE]:
     'Initialize conversion',
 
-  [U1_DIAGNOSTIC_STAGES.COPY_INPUT]:
+  [KS1_DIAGNOSTIC_STAGES.COPY_INPUT]:
     'Copy source data',
 
-  [U1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP]:
+  [KS1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP]:
     'Read source 3MF archive',
 
-  [U1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS]:
+  [KS1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS]:
     'Resolve converter options',
 
-  [U1_DIAGNOSTIC_STAGES.PARSE_PROJECT]:
+  [KS1_DIAGNOSTIC_STAGES.PARSE_PROJECT]:
     'Parse source project',
 
-  [U1_DIAGNOSTIC_STAGES.BUILD_PROJECT]:
-    'Build U1 project',
+  [KS1_DIAGNOSTIC_STAGES.BUILD_PROJECT]:
+    'Build KS1 project',
 
-  [U1_DIAGNOSTIC_STAGES.REWRITE_METADATA]:
+  [KS1_DIAGNOSTIC_STAGES.REWRITE_METADATA]:
     'Rewrite project metadata',
 
-  [U1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES]:
+  [KS1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES]:
     'Copy output archive files',
 
-  [U1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP]:
+  [KS1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP]:
     'Generate converted 3MF archive',
 
-  [U1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT]:
+  [KS1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT]:
     'Create conversion report',
 
-  [U1_DIAGNOSTIC_STAGES.FINISHED]:
+  [KS1_DIAGNOSTIC_STAGES.FINISHED]:
     'Conversion finished',
 });
 
-function getU1DiagnosticStageLabel(stageId) {
+function getKS1DiagnosticStageLabel(stageId) {
   return (
-    U1_DIAGNOSTIC_STAGE_LABELS[stageId] ||
+    KS1_DIAGNOSTIC_STAGE_LABELS[stageId] ||
     String(stageId || 'Unknown stage')
   );
 }
 
-const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
-  [U1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD]: {
+const KS1_STAGE_ERROR_DEFAULTS = Object.freeze({
+  [KS1_DIAGNOSTIC_STAGES.CAPTURE_DOWNLOAD]: {
     code:
-      U1_ERROR_CODES.DOWNLOAD_TRIGGER_FAILED,
+      KS1_ERROR_CODES.DOWNLOAD_TRIGGER_FAILED,
 
     userMessage:
       'The MakerWorld download could not be started or captured.',
@@ -179,9 +179,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Failed — reload page',
   },
 
-  [U1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE]: {
+  [KS1_DIAGNOSTIC_STAGES.FETCH_CAPTURED_RESPONSE]: {
     code:
-      U1_ERROR_CODES.DOWNLOAD_INTERCEPT_FAILED,
+      KS1_ERROR_CODES.DOWNLOAD_INTERCEPT_FAILED,
 
     userMessage:
       'The captured MakerWorld download response could not be read.',
@@ -193,9 +193,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE]: {
+  [KS1_DIAGNOSTIC_STAGES.FETCH_CDN_FILE]: {
     code:
-      U1_ERROR_CODES.DOWNLOAD_HTTP_FAILED,
+      KS1_ERROR_CODES.DOWNLOAD_HTTP_FAILED,
 
     userMessage:
       'The source 3MF could not be downloaded from MakerWorld.',
@@ -207,9 +207,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Download failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.READ_SETTINGS]: {
+  [KS1_DIAGNOSTIC_STAGES.READ_SETTINGS]: {
     code:
-      U1_ERROR_CODES.STORAGE_UNAVAILABLE,
+      KS1_ERROR_CODES.STORAGE_UNAVAILABLE,
 
     userMessage:
       'The extension settings could not be read.',
@@ -221,23 +221,23 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Failed — reload page',
   },
 
-  [U1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE]: {
+  [KS1_DIAGNOSTIC_STAGES.LOAD_PRINTER_PROFILE]: {
     code:
-      U1_ERROR_CODES.PROFILE_LOAD_FAILED,
+      KS1_ERROR_CODES.PROFILE_LOAD_FAILED,
 
     userMessage:
       'The selected custom printer profile could not be loaded.',
 
     userAction:
-      'Select the standard U1 profile or import the custom profile again.',
+      'Select the standard KS1 profile or import the custom profile again.',
 
     buttonText:
       'Profile load failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD]: {
+  [KS1_DIAGNOSTIC_STAGES.START_OUTPUT_DOWNLOAD]: {
     code:
-      U1_ERROR_CODES.OUTPUT_DOWNLOAD_FAILED,
+      KS1_ERROR_CODES.OUTPUT_DOWNLOAD_FAILED,
 
     userMessage:
       'The converted file was created, but its download could not be started.',
@@ -249,9 +249,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Download failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.INITIALIZE]: {
+  [KS1_DIAGNOSTIC_STAGES.INITIALIZE]: {
     code:
-      U1_ERROR_CODES.UNKNOWN,
+      KS1_ERROR_CODES.UNKNOWN,
 
     userMessage:
       'The conversion could not be initialized.',
@@ -263,9 +263,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.COPY_INPUT]: {
+  [KS1_DIAGNOSTIC_STAGES.COPY_INPUT]: {
     code:
-      U1_ERROR_CODES.INPUT_INVALID,
+      KS1_ERROR_CODES.INPUT_INVALID,
 
     userMessage:
       'The downloaded 3MF data is empty or invalid.',
@@ -277,9 +277,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP]: {
+  [KS1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP]: {
     code:
-      U1_ERROR_CODES.ZIP_READ_FAILED,
+      KS1_ERROR_CODES.ZIP_READ_FAILED,
 
     userMessage:
       'The downloaded 3MF archive could not be opened.',
@@ -291,9 +291,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS]: {
+  [KS1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS]: {
     code:
-      U1_ERROR_CODES.UNKNOWN,
+      KS1_ERROR_CODES.UNKNOWN,
 
     userMessage:
       'The converter settings could not be prepared.',
@@ -305,9 +305,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.PARSE_PROJECT]: {
+  [KS1_DIAGNOSTIC_STAGES.PARSE_PROJECT]: {
     code:
-      U1_ERROR_CODES.PROJECT_PARSE_FAILED,
+      KS1_ERROR_CODES.PROJECT_PARSE_FAILED,
 
     userMessage:
       'The MakerWorld project could not be read.',
@@ -319,12 +319,12 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.BUILD_PROJECT]: {
+  [KS1_DIAGNOSTIC_STAGES.BUILD_PROJECT]: {
     code:
-      U1_ERROR_CODES.PROJECT_BUILD_FAILED,
+      KS1_ERROR_CODES.PROJECT_BUILD_FAILED,
 
     userMessage:
-      'The Snapmaker U1 project could not be created.',
+      'The Snapmaker KS1 project could not be created.',
 
     userAction:
       'Copy the error report and include it when reporting the problem.',
@@ -333,9 +333,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.REWRITE_METADATA]: {
+  [KS1_DIAGNOSTIC_STAGES.REWRITE_METADATA]: {
     code:
-      U1_ERROR_CODES.METADATA_REWRITE_FAILED,
+      KS1_ERROR_CODES.METADATA_REWRITE_FAILED,
 
     userMessage:
       'The converted project metadata could not be written.',
@@ -347,9 +347,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES]: {
+  [KS1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES]: {
     code:
-      U1_ERROR_CODES.ZIP_WRITE_FAILED,
+      KS1_ERROR_CODES.ZIP_WRITE_FAILED,
 
     userMessage:
       'The files for the converted 3MF archive could not be assembled.',
@@ -361,9 +361,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP]: {
+  [KS1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP]: {
     code:
-      U1_ERROR_CODES.ZIP_WRITE_FAILED,
+      KS1_ERROR_CODES.ZIP_WRITE_FAILED,
 
     userMessage:
       'The converted 3MF archive could not be generated.',
@@ -375,9 +375,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT]: {
+  [KS1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT]: {
     code:
-      U1_ERROR_CODES.REPORT_FAILED,
+      KS1_ERROR_CODES.REPORT_FAILED,
 
     userMessage:
       'The conversion report could not be created.',
@@ -389,9 +389,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
       'Conversion failed',
   },
 
-  [U1_DIAGNOSTIC_STAGES.FINISHED]: {
+  [KS1_DIAGNOSTIC_STAGES.FINISHED]: {
     code:
-      U1_ERROR_CODES.UNKNOWN,
+      KS1_ERROR_CODES.UNKNOWN,
 
     userMessage:
       'The conversion could not be completed.',
@@ -404,9 +404,9 @@ const U1_STAGE_ERROR_DEFAULTS = Object.freeze({
   },
 });
 
-function getU1StageErrorDefaults(stageId) {
+function getKS1StageErrorDefaults(stageId) {
   const defaults =
-    U1_STAGE_ERROR_DEFAULTS[stageId];
+    KS1_STAGE_ERROR_DEFAULTS[stageId];
 
   if (defaults) {
     return {
@@ -416,7 +416,7 @@ function getU1StageErrorDefaults(stageId) {
 
   return {
     code:
-      U1_ERROR_CODES.UNKNOWN,
+      KS1_ERROR_CODES.UNKNOWN,
 
     userMessage:
       'The conversion failed because of an unexpected error.',
@@ -429,7 +429,7 @@ function getU1StageErrorDefaults(stageId) {
   };
 }
 
-function createU1ConversionId() {
+function createKS1ConversionId() {
   const timestamp = Date.now().toString(36);
 
   let randomPart = '';
@@ -456,10 +456,10 @@ function createU1ConversionId() {
       .slice(2, 12);
   }
 
-  return `u1-${timestamp}-${randomPart}`;
+  return `ks1-${timestamp}-${randomPart}`;
 }
 
-function getU1DiagnosticTime() {
+function getKS1DiagnosticTime() {
   try {
     return performance.now();
   } catch {
@@ -467,7 +467,7 @@ function getU1DiagnosticTime() {
   }
 }
 
-function cloneU1DiagnosticValue(value) {
+function cloneKS1DiagnosticValue(value) {
   if (
     value === undefined ||
     value === null ||
@@ -487,14 +487,14 @@ function cloneU1DiagnosticValue(value) {
   }
 
   if (Array.isArray(value)) {
-    return value.map(cloneU1DiagnosticValue);
+    return value.map(cloneKS1DiagnosticValue);
   }
 
   if (typeof value === 'object') {
     const clone = {};
 
     for (const [key, item] of Object.entries(value)) {
-      clone[key] = cloneU1DiagnosticValue(item);
+      clone[key] = cloneKS1DiagnosticValue(item);
     }
 
     return clone;
@@ -503,7 +503,7 @@ function cloneU1DiagnosticValue(value) {
   return String(value);
 }
 
-function sanitizeU1DiagnosticContext(context = {}) {
+function sanitizeKS1DiagnosticContext(context = {}) {
   if (
     !context ||
     typeof context !== 'object' ||
@@ -517,15 +517,15 @@ function sanitizeU1DiagnosticContext(context = {}) {
   for (const [key, value] of Object.entries(context)) {
     if (value === undefined) continue;
 
-    sanitized[key] = cloneU1DiagnosticValue(value);
+    sanitized[key] = cloneKS1DiagnosticValue(value);
   }
 
   return sanitized;
 }
 
-class U1ConversionError extends Error {
+class KS1ConversionError extends Error {
   constructor({
-    code = U1_ERROR_CODES.UNKNOWN,
+    code = KS1_ERROR_CODES.UNKNOWN,
     stage = '',
     message = 'Unexpected conversion error.',
     userMessage = 'The conversion failed because of an unexpected error.',
@@ -537,10 +537,10 @@ class U1ConversionError extends Error {
   } = {}) {
     super(String(message || 'Unexpected conversion error.'));
 
-    this.name = 'U1ConversionError';
+    this.name = 'KS1ConversionError';
 
     this.code =
-      String(code || U1_ERROR_CODES.UNKNOWN);
+      String(code || KS1_ERROR_CODES.UNKNOWN);
 
     this.stage =
       String(stage || '');
@@ -561,7 +561,7 @@ class U1ConversionError extends Error {
       cause || null;
 
     this.context =
-      sanitizeU1DiagnosticContext(context);
+      sanitizeKS1DiagnosticContext(context);
 
     this.simulated =
       simulated === true;
@@ -588,22 +588,22 @@ class U1ConversionError extends Error {
   }
 }
 
-function isU1ConversionError(value) {
+function isKS1ConversionError(value) {
   return (
-    value instanceof U1ConversionError ||
+    value instanceof KS1ConversionError ||
     (
       value &&
       typeof value === 'object' &&
-      value.name === 'U1ConversionError' &&
+      value.name === 'KS1ConversionError' &&
       typeof value.code === 'string'
     )
   );
 }
 
-function normalizeU1ConversionError(
+function normalizeKS1ConversionError(
   rawError,
   {
-    code = U1_ERROR_CODES.UNKNOWN,
+    code = KS1_ERROR_CODES.UNKNOWN,
     stage = '',
     message = '',
     userMessage = '',
@@ -612,14 +612,14 @@ function normalizeU1ConversionError(
     context = {},
   } = {}
 ) {
-  if (isU1ConversionError(rawError)) {
+  if (isKS1ConversionError(rawError)) {
     if (!rawError.stage && stage) {
       rawError.stage = String(stage);
     }
 
     rawError.context = {
-      ...sanitizeU1DiagnosticContext(context),
-      ...sanitizeU1DiagnosticContext(
+      ...sanitizeKS1DiagnosticContext(context),
+      ...sanitizeKS1DiagnosticContext(
         rawError.context
       ),
     };
@@ -638,7 +638,7 @@ function normalizeU1ConversionError(
           )
     );
 
-  return new U1ConversionError({
+  return new KS1ConversionError({
     code,
     stage,
 
@@ -658,33 +658,33 @@ function normalizeU1ConversionError(
         : null,
 
     context: {
-      ...sanitizeU1DiagnosticContext(
-        rawError?.u1DiagnosticContext
+      ...sanitizeKS1DiagnosticContext(
+        rawError?.ks1DiagnosticContext
       ),
 
-      ...sanitizeU1DiagnosticContext(
+      ...sanitizeKS1DiagnosticContext(
         context
       ),
 
       simulatedFault:
-        rawError?.u1SimulatedFault,
+        rawError?.ks1SimulatedFault,
     },
 
     simulated:
-      rawError?.u1Simulated === true,
+      rawError?.ks1Simulated === true,
   });
 }
 
-class U1ConversionDiagnostics {
+class KS1ConversionDiagnostics {
   constructor(initialMetadata = {}) {
     this.id =
-      createU1ConversionId();
+      createKS1ConversionId();
 
     this.startedAt =
       new Date().toISOString();
 
     this.startedAtPerformance =
-      getU1DiagnosticTime();
+      getKS1DiagnosticTime();
 
     this.finishedAt =
       null;
@@ -699,7 +699,7 @@ class U1ConversionDiagnostics {
       {};
 
     this.metadata =
-      sanitizeU1DiagnosticContext(
+      sanitizeKS1DiagnosticContext(
         initialMetadata
       );
 
@@ -710,7 +710,7 @@ class U1ConversionDiagnostics {
   setMetadata(values = {}) {
     this.metadata = {
       ...this.metadata,
-      ...sanitizeU1DiagnosticContext(values),
+      ...sanitizeKS1DiagnosticContext(values),
     };
 
     return this;
@@ -718,7 +718,7 @@ class U1ConversionDiagnostics {
 
   setOperation(values = {}) {
     this.currentOperation =
-      sanitizeU1DiagnosticContext(values);
+      sanitizeKS1DiagnosticContext(values);
 
     return this;
   }
@@ -742,7 +742,7 @@ class U1ConversionDiagnostics {
       this.stages.find(
         stage =>
           stage.status ===
-          U1_DIAGNOSTIC_STAGE_STATUS.RUNNING
+          KS1_DIAGNOSTIC_STAGE_STATUS.RUNNING
       );
 
     if (existingRunningStage) {
@@ -758,16 +758,16 @@ class U1ConversionDiagnostics {
         String(label || stageId),
 
       status:
-        U1_DIAGNOSTIC_STAGE_STATUS.RUNNING,
+        KS1_DIAGNOSTIC_STAGE_STATUS.RUNNING,
 
       startedAt:
-        getU1DiagnosticTime(),
+        getKS1DiagnosticTime(),
 
       durationMs:
         null,
 
       context:
-        sanitizeU1DiagnosticContext(context),
+        sanitizeKS1DiagnosticContext(context),
     };
 
     this.currentStage =
@@ -807,15 +807,15 @@ class U1ConversionDiagnostics {
 
     if (
       stage.status ===
-      U1_DIAGNOSTIC_STAGE_STATUS.RUNNING
+      KS1_DIAGNOSTIC_STAGE_STATUS.RUNNING
     ) {
       stage.status =
-        U1_DIAGNOSTIC_STAGE_STATUS.OK;
+        KS1_DIAGNOSTIC_STAGE_STATUS.OK;
 
       stage.durationMs =
         Math.max(
           0,
-          getU1DiagnosticTime() -
+          getKS1DiagnosticTime() -
           stage.startedAt
         );
     }
@@ -828,7 +828,7 @@ class U1ConversionDiagnostics {
   failStage(
     rawError,
     {
-      code = U1_ERROR_CODES.UNKNOWN,
+      code = KS1_ERROR_CODES.UNKNOWN,
       stage = '',
       message = '',
       userMessage = '',
@@ -858,17 +858,17 @@ class U1ConversionDiagnostics {
     }
 
     stageRecord.status =
-      U1_DIAGNOSTIC_STAGE_STATUS.FAILED;
+      KS1_DIAGNOSTIC_STAGE_STATUS.FAILED;
 
     stageRecord.durationMs =
       Math.max(
         0,
-        getU1DiagnosticTime() -
+        getKS1DiagnosticTime() -
         stageRecord.startedAt
       );
 
     const error =
-      normalizeU1ConversionError(
+      normalizeKS1ConversionError(
         rawError,
         {
           code,
@@ -883,7 +883,7 @@ class U1ConversionDiagnostics {
           context: {
             ...stageRecord.context,
             ...this.currentOperation,
-            ...sanitizeU1DiagnosticContext(
+            ...sanitizeKS1DiagnosticContext(
               context
             ),
           },
@@ -906,7 +906,7 @@ class U1ConversionDiagnostics {
       this.durationMs =
         Math.max(
           0,
-          getU1DiagnosticTime() -
+          getKS1DiagnosticTime() -
           this.startedAtPerformance
         );
     }
@@ -932,12 +932,12 @@ class U1ConversionDiagnostics {
         this.currentStage,
 
       currentOperation:
-        sanitizeU1DiagnosticContext(
+        sanitizeKS1DiagnosticContext(
           this.currentOperation
         ),
 
       metadata:
-        sanitizeU1DiagnosticContext(
+        sanitizeKS1DiagnosticContext(
           this.metadata
         ),
 
@@ -956,7 +956,7 @@ class U1ConversionDiagnostics {
             stage.durationMs,
 
           context:
-            sanitizeU1DiagnosticContext(
+            sanitizeKS1DiagnosticContext(
               stage.context
             ),
         })),
@@ -986,7 +986,7 @@ class U1ConversionDiagnostics {
                 this.error.buttonText,
 
               context:
-                sanitizeU1DiagnosticContext(
+                sanitizeKS1DiagnosticContext(
                   this.error.context
                 ),
 
@@ -994,7 +994,7 @@ class U1ConversionDiagnostics {
                 this.error.simulated === true,
 
               originalError:
-                cloneU1DiagnosticValue(
+                cloneKS1DiagnosticValue(
                   this.error.originalError
                 ),
 
@@ -1009,10 +1009,10 @@ class U1ConversionDiagnostics {
   }
 }
 
-function createU1ConversionDiagnostics(
+function createKS1ConversionDiagnostics(
   initialMetadata = {}
 ) {
-  return new U1ConversionDiagnostics(
+  return new KS1ConversionDiagnostics(
     initialMetadata
   );
 }
@@ -1021,7 +1021,7 @@ function createU1ConversionDiagnostics(
 // Developer fault simulation
 // -----------------------------------------------------------------------------
 
-function throwU1SimulatedFault(
+function throwKS1SimulatedFault(
   activeFault,
   expectedFault,
   message = 'Simulated conversion failure.',
@@ -1050,16 +1050,16 @@ function throwU1SimulatedFault(
     );
 
   error.name =
-    'U1SimulatedFaultError';
+    'KS1SimulatedFaultError';
 
-  error.u1Simulated =
+  error.ks1Simulated =
     true;
 
-  error.u1SimulatedFault =
+  error.ks1SimulatedFault =
     targetFault;
 
-  error.u1DiagnosticContext =
-    sanitizeU1DiagnosticContext(
+  error.ks1DiagnosticContext =
+    sanitizeKS1DiagnosticContext(
       context
     );
 
@@ -1070,7 +1070,7 @@ function throwU1SimulatedFault(
 // Conversion error preparation
 // -----------------------------------------------------------------------------
 
-function getU1ErrorDiagnostics(
+function getKS1ErrorDiagnostics(
   error,
   fallbackDiagnostics = null
 ) {
@@ -1078,14 +1078,14 @@ function getU1ErrorDiagnostics(
     error?.diagnostics &&
     typeof error.diagnostics === 'object'
   ) {
-    return cloneU1DiagnosticValue(
+    return cloneKS1DiagnosticValue(
       error.diagnostics
     );
   }
 
   if (
     fallbackDiagnostics instanceof
-    U1ConversionDiagnostics
+    KS1ConversionDiagnostics
   ) {
     return fallbackDiagnostics.snapshot();
   }
@@ -1094,7 +1094,7 @@ function getU1ErrorDiagnostics(
     fallbackDiagnostics &&
     typeof fallbackDiagnostics === 'object'
   ) {
-    return cloneU1DiagnosticValue(
+    return cloneKS1DiagnosticValue(
       fallbackDiagnostics
     );
   }
@@ -1102,11 +1102,11 @@ function getU1ErrorDiagnostics(
   return null;
 }
 
-function prepareU1ErrorForReport(
+function prepareKS1ErrorForReport(
   rawError,
   {
     diagnostics = null,
-    code = U1_ERROR_CODES.UNKNOWN,
+    code = KS1_ERROR_CODES.UNKNOWN,
     stage = '',
     userMessage = '',
     userAction = '',
@@ -1124,7 +1124,7 @@ function prepareU1ErrorForReport(
 
   if (
     diagnostics instanceof
-    U1ConversionDiagnostics &&
+    KS1ConversionDiagnostics &&
     !diagnostics.error
   ) {
     error = diagnostics.failStage(
@@ -1148,7 +1148,7 @@ function prepareU1ErrorForReport(
       }
     );
   } else {
-    error = normalizeU1ConversionError(
+    error = normalizeKS1ConversionError(
       rawError,
       {
         code,
@@ -1171,7 +1171,7 @@ function prepareU1ErrorForReport(
   }
 
   const reportDiagnostics =
-    getU1ErrorDiagnostics(
+    getKS1ErrorDiagnostics(
       error,
       diagnostics
     );
@@ -1189,7 +1189,7 @@ function getConverterVersion() {
     return chrome.runtime.getManifest().version || 'unknown';
   } catch (error) {
     console.warn(
-      '[U1 Converter] Could not read extension version from manifest:',
+      '[KS1 Converter] Could not read extension version from manifest:',
       error
     );
     return 'unknown';
@@ -1232,26 +1232,26 @@ function copyBinaryInputToLocalUint8Array(input) {
   return localBytes;
 }
 
-async function convertToU1(inputBuffer, opts = {}) {
+async function convertToKS1(inputBuffer, opts = {}) {
   const conversionStartedAt = performance.now();
   const performanceTimings = {};
 
   const ownsDiagnostics =
     !(
-      opts?.u1Diagnostics instanceof
-      U1ConversionDiagnostics
+      opts?.ks1Diagnostics instanceof
+      KS1ConversionDiagnostics
     );
 
   const diagnostics =
     ownsDiagnostics
-      ? createU1ConversionDiagnostics()
-      : opts.u1Diagnostics;
+      ? createKS1ConversionDiagnostics()
+      : opts.ks1Diagnostics;
 
   try {
     diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.INITIALIZE,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.INITIALIZE
+    KS1_DIAGNOSTIC_STAGES.INITIALIZE,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.INITIALIZE
     )
   );
 
@@ -1266,7 +1266,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.INITIALIZE
+    KS1_DIAGNOSTIC_STAGES.INITIALIZE
   );
 
   // ---------------------------------------------------------------------------
@@ -1274,9 +1274,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.COPY_INPUT,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.COPY_INPUT
+    KS1_DIAGNOSTIC_STAGES.COPY_INPUT,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.COPY_INPUT
     ),
     {
       inputBytes:
@@ -1302,7 +1302,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.COPY_INPUT
+    KS1_DIAGNOSTIC_STAGES.COPY_INPUT
   );
 
   // ---------------------------------------------------------------------------
@@ -1310,9 +1310,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP
+    KS1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP
     ),
     {
       inputBytes:
@@ -1322,8 +1322,8 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    opts?.u1TestFault,
+  throwKS1SimulatedFault(
+    opts?.ks1TestFault,
     'invalid-zip',
     'Simulated invalid source ZIP.'
   );
@@ -1340,7 +1340,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP
+    KS1_DIAGNOSTIC_STAGES.LOAD_SOURCE_ZIP
   );
 
   // ---------------------------------------------------------------------------
@@ -1348,9 +1348,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS
+    KS1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS
     )
   );
 
@@ -1398,7 +1398,7 @@ async function convertToU1(inputBuffer, opts = {}) {
     //
     // Object-valued options are already excluded from the normal
     // converter-options console table.
-    u1Diagnostics:
+    ks1Diagnostics:
       diagnostics,
   };
 
@@ -1417,7 +1417,7 @@ async function convertToU1(inputBuffer, opts = {}) {
 
       selectedCustomPrinterProfileId:
         resolvedOptions.selectedCustomPrinterProfileId ||
-        U1_CUSTOM_PRINTER_STANDARD_ID,
+        KS1_CUSTOM_PRINTER_STANDARD_ID,
 
       orcaCompatibility:
         resolvedOptions.orcaCompatibility === true,
@@ -1452,7 +1452,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS
+    KS1_DIAGNOSTIC_STAGES.RESOLVE_OPTIONS
   );
 
   // ---------------------------------------------------------------------------
@@ -1460,9 +1460,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.PARSE_PROJECT,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.PARSE_PROJECT
+    KS1_DIAGNOSTIC_STAGES.PARSE_PROJECT,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.PARSE_PROJECT
     ),
     {
       zipEntries:
@@ -1475,8 +1475,8 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'project-parse-failure',
     'Simulated project parsing failure.'
   );
@@ -1513,17 +1513,17 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.PARSE_PROJECT
+    KS1_DIAGNOSTIC_STAGES.PARSE_PROJECT
   );
 
   // ---------------------------------------------------------------------------
-  // Build converted U1 project settings
+  // Build converted KS1 project settings
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.BUILD_PROJECT,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.BUILD_PROJECT
+    KS1_DIAGNOSTIC_STAGES.BUILD_PROJECT,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.BUILD_PROJECT
     ),
     {
       sourceFilamentCount:
@@ -1540,21 +1540,21 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'project-build-failure',
-    'Simulated U1 project build failure.'
+    'Simulated KS1 project build failure.'
   );
 
   const project =
-    await buildU1Project(
+    await buildKS1Project(
       sourceProject,
       {
         ...(opts || {}),
         converterOptions:
           resolvedOptions,
 
-        u1Diagnostics:
+        ks1Diagnostics:
           diagnostics,
       }
     );
@@ -1568,16 +1568,16 @@ async function convertToU1(inputBuffer, opts = {}) {
       null,
 
     finalPrinterProfile:
-      project.u1?.settings?.printer_settings_id ||
+      project.ks1?.settings?.printer_settings_id ||
       null,
 
     finalPrintProfile:
-      project.u1?.settings?.print_settings_id ||
+      project.ks1?.settings?.print_settings_id ||
       null,
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.BUILD_PROJECT
+    KS1_DIAGNOSTIC_STAGES.BUILD_PROJECT
   );
 
   // ---------------------------------------------------------------------------
@@ -1585,9 +1585,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.REWRITE_METADATA,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.REWRITE_METADATA
+    KS1_DIAGNOSTIC_STAGES.REWRITE_METADATA,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.REWRITE_METADATA
     ),
     {
       multiPlateFixEnabled:
@@ -1597,14 +1597,14 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'metadata-rewrite-failure',
     'Simulated project metadata rewrite failure.'
   );
 
   const metadata =
-    await rewriteU13mfMetadata(
+    await rewriteKS13mfMetadata(
       zip,
       project
     );
@@ -1636,7 +1636,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.REWRITE_METADATA
+    KS1_DIAGNOSTIC_STAGES.REWRITE_METADATA
   );
 
   // ---------------------------------------------------------------------------
@@ -1659,9 +1659,9 @@ async function convertToU1(inputBuffer, opts = {}) {
     0;
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES
+    KS1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES
     ),
     {
       sourceZipEntries:
@@ -1671,8 +1671,8 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'zip-copy-failure',
     'Simulated output ZIP entry copy failure.'
   );
@@ -1717,7 +1717,7 @@ async function convertToU1(inputBuffer, opts = {}) {
     ) {
       outZip.file(
         name,
-        project.u1.settingsBytes
+        project.ks1.settingsBytes
       );
 
       rewrittenFileCount++;
@@ -1777,7 +1777,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES
+    KS1_DIAGNOSTIC_STAGES.COPY_ZIP_ENTRIES
   );
 
   // ---------------------------------------------------------------------------
@@ -1785,9 +1785,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP
+    KS1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP
     ),
     {
       compression:
@@ -1803,8 +1803,8 @@ async function convertToU1(inputBuffer, opts = {}) {
 
   stageStartedAt = performance.now();
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'zip-build-failure',
     'Simulated output ZIP generation failure.'
   );
@@ -1832,7 +1832,7 @@ async function convertToU1(inputBuffer, opts = {}) {
   });
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP
+    KS1_DIAGNOSTIC_STAGES.GENERATE_OUTPUT_ZIP
   );
 
   performanceTimings.totalMs =
@@ -1885,9 +1885,9 @@ async function convertToU1(inputBuffer, opts = {}) {
   // ---------------------------------------------------------------------------
 
   diagnostics.startStage(
-    U1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT,
-    getU1DiagnosticStageLabel(
-      U1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT
+    KS1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT,
+    getKS1DiagnosticStageLabel(
+      KS1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT
     ),
     {
       enabled:
@@ -1895,8 +1895,8 @@ async function convertToU1(inputBuffer, opts = {}) {
     }
   );
 
-  throwU1SimulatedFault(
-    resolvedOptions.u1TestFault,
+  throwKS1SimulatedFault(
+    resolvedOptions.ks1TestFault,
     'project-report-failure',
     'Simulated conversion report failure.'
   );
@@ -1904,32 +1904,32 @@ async function convertToU1(inputBuffer, opts = {}) {
   if (
     project.options?.debugReport !== false
   ) {
-    logU1ProjectReport(project);
+    logKS1ProjectReport(project);
   }
 
   diagnostics.completeStage(
-    U1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT
+    KS1_DIAGNOSTIC_STAGES.CREATE_PROJECT_REPORT
   );
 
   // ---------------------------------------------------------------------------
   // Finish diagnostics
   // ---------------------------------------------------------------------------
 
-  // When convertToU1() created the tracker itself, this function represents
+  // When convertToKS1() created the tracker itself, this function represents
   // the complete workflow and therefore finishes it here.
   //
   // When content.js supplied the tracker, the outer workflow still has to
   // start the browser download. In that case content.js finishes it later.
   if (ownsDiagnostics) {
     diagnostics.startStage(
-      U1_DIAGNOSTIC_STAGES.FINISHED,
-      getU1DiagnosticStageLabel(
-        U1_DIAGNOSTIC_STAGES.FINISHED
+      KS1_DIAGNOSTIC_STAGES.FINISHED,
+      getKS1DiagnosticStageLabel(
+        KS1_DIAGNOSTIC_STAGES.FINISHED
       )
     );
 
     diagnostics.completeStage(
-      U1_DIAGNOSTIC_STAGES.FINISHED
+      KS1_DIAGNOSTIC_STAGES.FINISHED
     );
 
     diagnostics.finish();
@@ -1942,10 +1942,10 @@ async function convertToU1(inputBuffer, opts = {}) {
   } catch (rawError) {
     const failedStage =
       diagnostics.currentStage ||
-      U1_DIAGNOSTIC_STAGES.INITIALIZE;
+      KS1_DIAGNOSTIC_STAGES.INITIALIZE;
 
     const stageDefaults =
-      getU1StageErrorDefaults(
+      getKS1StageErrorDefaults(
         failedStage
       );
 
@@ -1963,7 +1963,7 @@ async function convertToU1(inputBuffer, opts = {}) {
               getConverterVersion(),
 
             stageLabel:
-              getU1DiagnosticStageLabel(
+              getKS1DiagnosticStageLabel(
                 failedStage
               ),
           },

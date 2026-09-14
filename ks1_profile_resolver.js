@@ -1,9 +1,9 @@
-// Resolves Bambu process profile names to Snapmaker Orca/U1 system preset names.
+// Resolves Bambu process profile names to Snapmaker Orca/KS1 system preset names.
 //
 // SnOrca only recognizes presets when print_settings_id/default_print_profile
-// exactly match the internal U1 preset label.
+// exactly match the internal KS1 preset label.
 
-const U1_PROCESS_PROFILE_MAP = {
+const KS1_PROCESS_PROFILE_MAP = {
   '0.08mm Extra Fine': {
     id: '0.08mm-extra-fine',
     mappedBase: '0.08 Extra Fine',
@@ -46,13 +46,13 @@ const U1_PROCESS_PROFILE_MAP = {
   },
 };
 
-const U1_PROCESS_PROFILE_ID_MAP = Object.fromEntries(
-  Object.entries(U1_PROCESS_PROFILE_MAP).map(([sourceBase, row]) => [
+const KS1_PROCESS_PROFILE_ID_MAP = Object.fromEntries(
+  Object.entries(KS1_PROCESS_PROFILE_MAP).map(([sourceBase, row]) => [
     row.id,
     {
       sourceBase,
       ...row,
-      resolvedLabel: `${row.mappedBase} @Snapmaker U1 (0.4 nozzle)`,
+      resolvedLabel: `${row.mappedBase} @Snapmaker KS1 (0.4 nozzle)`,
     }
   ])
 );
@@ -65,7 +65,7 @@ function parseBambuProcessProfileName(name) {
 
   if (bambuMatch) {
     const sourceBase = `${bambuMatch[1]}mm ${bambuMatch[2].trim()}`;
-    const mapped = U1_PROCESS_PROFILE_MAP[sourceBase];
+    const mapped = KS1_PROCESS_PROFILE_MAP[sourceBase];
 
     return {
       original: value,
@@ -73,17 +73,17 @@ function parseBambuProcessProfileName(name) {
       mappedBase: mapped?.mappedBase || sourceBase,
       profileId: mapped?.id || '',
       resolvedLabel: mapped
-        ? `${mapped.mappedBase} @Snapmaker U1 (0.4 nozzle)`
+        ? `${mapped.mappedBase} @Snapmaker KS1 (0.4 nozzle)`
         : '',
       knownMapping: !!mapped,
     };
   }
 
-  const u1Match = value.match(/(\d+(?:\.\d+)?)\s+(.+?)\s+@Snapmaker U1/i);
+  const ks1Match = value.match(/(\d+(?:\.\d+)?)\s+(.+?)\s+@Snapmaker KS1/i);
 
-  if (u1Match) {
-    const mappedBase = `${u1Match[1]} ${u1Match[2].trim()}`;
-    const found = Object.values(U1_PROCESS_PROFILE_ID_MAP)
+  if (ks1Match) {
+    const mappedBase = `${ks1Match[1]} ${ks1Match[2].trim()}`;
+    const found = Object.values(KS1_PROCESS_PROFILE_ID_MAP)
       .find(row => row.mappedBase.toLowerCase() === mappedBase.toLowerCase());
 
     return {
@@ -99,7 +99,7 @@ function parseBambuProcessProfileName(name) {
   return null;
 }
 
-function resolveU1ProcessProfile(origSettings, options = {}) {
+function resolveKS1ProcessProfile(origSettings, options = {}) {
   const mode = options.printProfileMode === 'force' ? 'force' : 'preserve';
 
   const printSettingsCandidate = parseBambuProcessProfileName(origSettings.print_settings_id);
@@ -110,7 +110,7 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
       options.forcedProfileId ||
       '0.20mm-standard';
 
-    const forced = U1_PROCESS_PROFILE_ID_MAP[forcedProfileId] || U1_PROCESS_PROFILE_ID_MAP['0.20mm-standard'];
+    const forced = KS1_PROCESS_PROFILE_ID_MAP[forcedProfileId] || KS1_PROCESS_PROFILE_ID_MAP['0.20mm-standard'];
 
     return {
       mode,
@@ -126,7 +126,7 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
       selected_source_profile: '',
       source_ignored: defaultProfileCandidate?.original || printSettingsCandidate?.original || '',
 
-      resolved_u1_profile: forced.resolvedLabel,
+      resolved_ks1_profile: forced.resolvedLabel,
       source_base: forced.sourceBase,
       mapped_base: forced.mappedBase,
 
@@ -153,7 +153,7 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
       default_profile_candidate: defaultProfileCandidate,
 
       selected_source_profile: selected.original,
-      resolved_u1_profile: selected.resolvedLabel,
+      resolved_ks1_profile: selected.resolvedLabel,
       source_base: selected.sourceBase,
       mapped_base: selected.mappedBase,
 
@@ -163,7 +163,7 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
     };
   }
 
-  const fallback = U1_PROCESS_PROFILE_ID_MAP['0.20mm-standard'];
+  const fallback = KS1_PROCESS_PROFILE_ID_MAP['0.20mm-standard'];
 
   return {
     mode,
@@ -176,7 +176,7 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
     default_profile_candidate: defaultProfileCandidate,
 
     selected_source_profile: '',
-    resolved_u1_profile: fallback.resolvedLabel,
+    resolved_ks1_profile: fallback.resolvedLabel,
     source_base: fallback.sourceBase,
     mapped_base: fallback.mappedBase,
 
@@ -185,12 +185,12 @@ function resolveU1ProcessProfile(origSettings, options = {}) {
   };
 }
 
-function applyResolvedU1ProcessPreset(combined, origSettings, resolvedProfile = {}, loadedProfileSettings = {}) {
+function applyResolvedKS1ProcessPreset(combined, origSettings, resolvedProfile = {}, loadedProfileSettings = {}) {
   const resolvedLabel =
     loadedProfileSettings.print_settings_id ||
     loadedProfileSettings.default_print_profile ||
-    resolvedProfile.resolved_u1_profile ||
-    '0.20 Standard @Snapmaker U1 (0.4 nozzle)';
+    resolvedProfile.resolved_ks1_profile ||
+    '0.20 Standard @Snapmaker KS1 (0.4 nozzle)';
 
   combined.print_settings_id = resolvedLabel;
   combined.default_print_profile = resolvedLabel;
@@ -209,6 +209,6 @@ function applyResolvedU1ProcessPreset(combined, origSettings, resolvedProfile = 
 
   return {
     ...resolvedProfile,
-    resolved_u1_profile: resolvedLabel,
+    resolved_ks1_profile: resolvedLabel,
   };
 }

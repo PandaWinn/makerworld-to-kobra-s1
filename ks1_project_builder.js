@@ -1,9 +1,9 @@
-// Builds the final U1 Project object from the parsed source project.
+// Builds the final KS1 Project object from the parsed source project.
 //
 // Applies process merging, profile resolution, compatibility rules
 // and filament normalization before the project is written back.
 
-async function buildU1Project(input, opts = {}) {
+async function buildKS1Project(input, opts = {}) {
 
 // -----------------------------------------------------------------------------
 // Source project
@@ -11,7 +11,7 @@ async function buildU1Project(input, opts = {}) {
   const sourceProject = input;
 
   if (!sourceProject?.original?.settings) {
-    throw new Error('buildU1Project() requires a parsed project object.');
+    throw new Error('buildKS1Project() requires a parsed project object.');
   }
 
   const origSettingsStr = sourceProject.original.settingsStr;
@@ -25,7 +25,7 @@ async function buildU1Project(input, opts = {}) {
     ...(opts?.converterOptions || {}),
   };
 
-  const processProfileResolution = resolveU1ProcessProfile(
+  const processProfileResolution = resolveKS1ProcessProfile(
     origSettings,
     converterOptions
   );
@@ -38,20 +38,20 @@ async function buildU1Project(input, opts = {}) {
     : String(diff).includes('enable_support');
 
 // -----------------------------------------------------------------------------
-// Resolve U1 process profile
+// Resolve KS1 process profile
 // -----------------------------------------------------------------------------
-  let u1Settings;
+  let ks1Settings;
   try {
-    u1Settings = await fetch(chrome.runtime.getURL(`assets/profiles/${profileId}.json`)).then(r => {
+    ks1Settings = await fetch(chrome.runtime.getURL(`assets/profiles/${profileId}.json`)).then(r => {
       if (!r.ok) throw new Error(r.status);
       return r.json();
     });
   } catch {
-    u1Settings = await fetch(chrome.runtime.getURL('assets/u1_template.json')).then(r => r.json());
+    ks1Settings = await fetch(chrome.runtime.getURL('assets/kobra_template.json')).then(r => r.json());
   }
 
   if (hasSupport) {
-    u1Settings = { ...u1Settings, enable_support: '1' };
+    ks1Settings = { ...ks1Settings, enable_support: '1' };
   }
 
 // -----------------------------------------------------------------------------
@@ -82,21 +82,21 @@ async function buildU1Project(input, opts = {}) {
   filaments = filaments.slice(0, targetFilamentCount);
 
 // -----------------------------------------------------------------------------
-// Merge source process settings into the U1 template
+// Merge source process settings into the KS1 template
 // -----------------------------------------------------------------------------
-  const combined = { ...u1Settings };
+  const combined = { ...ks1Settings };
 
-  const processMergeReport = mergeBambuProcessSettingsIntoU1(
+  const processMergeReport = mergeBambuProcessSettingsIntoKS1(
     combined,
     origSettings,
     converterOptions
   );
 
-  const processPresetReport = applyResolvedU1ProcessPreset(
+  const processPresetReport = applyResolvedKS1ProcessPreset(
     combined,
     origSettings,
     processProfileResolution,
-    u1Settings
+    ks1Settings
   );
 
 // -----------------------------------------------------------------------------
@@ -111,16 +111,16 @@ async function buildU1Project(input, opts = {}) {
 // -----------------------------------------------------------------------------
 // Apply compatibility fixes
 // -----------------------------------------------------------------------------
-  let compatibilityReport = analyzeU1Compatibility(combined, {
+  let compatibilityReport = analyzeKS1Compatibility(combined, {
     ...converterOptions,
     projectFeatures: sourceProject?.analysis?.features || null,
   });
-  applyU1Compatibility(combined, compatibilityReport);
+  applyKS1Compatibility(combined, compatibilityReport);
 
 // -----------------------------------------------------------------------------
 // Apply user compatibility options
 // -----------------------------------------------------------------------------
-  const userOptionReport = applyU1UserOptionCompatibilityRules(
+  const userOptionReport = applyKS1UserOptionCompatibilityRules(
     combined,
     converterOptions
   );
@@ -139,12 +139,12 @@ async function buildU1Project(input, opts = {}) {
 // -----------------------------------------------------------------------------
 // Normalize filament presets
 // -----------------------------------------------------------------------------
-  const filamentPresetReport = applyFinalU1FilamentPass(
+  const filamentPresetReport = applyFinalKS1FilamentPass(
     combined,
     origSettings,
     filaments,
     converterOptions,
-    u1Settings,
+    ks1Settings,
     targetFilamentCount
   );
 
@@ -153,12 +153,12 @@ async function buildU1Project(input, opts = {}) {
 // -----------------------------------------------------------------------------
   const customPrinterProfileReport =
     converterOptions.orcaCompatibility === true
-      ? applyOrcaCompatibilityToU1Settings(
+      ? applyOrcaCompatibilityToKS1Settings(
           combined,
           converterOptions.customPrinterProfile || null,
           { targetFilamentCount }
         )
-      : applyCustomPrinterProfileToU1Settings(
+      : applyCustomPrinterProfileToKS1Settings(
           combined,
           converterOptions.customPrinterProfile || null,
           { targetFilamentCount }
@@ -166,19 +166,19 @@ async function buildU1Project(input, opts = {}) {
 
   customPrinterProfileReport.requested =
     converterOptions.selectedCustomPrinterProfileId ||
-    U1_CUSTOM_PRINTER_STANDARD_ID;
+    KS1_CUSTOM_PRINTER_STANDARD_ID;
 
   customPrinterProfileReport.mode =
     converterOptions.orcaCompatibility === true
       ? (
           customPrinterProfileReport.requested ===
-          U1_CUSTOM_PRINTER_STANDARD_ID
+          KS1_CUSTOM_PRINTER_STANDARD_ID
             ? 'orca-standard'
             : 'orca-custom'
         )
       : (
           customPrinterProfileReport.requested ===
-          U1_CUSTOM_PRINTER_STANDARD_ID
+          KS1_CUSTOM_PRINTER_STANDARD_ID
             ? 'snorca-standard'
             : 'snorca-custom'
         );
@@ -221,7 +221,7 @@ async function buildU1Project(input, opts = {}) {
     modelSettingsDoc: sourceProject?.original?.modelSettingsDoc,
   };
 
-  project.u1 = {
+  project.ks1 = {
     settings: combined,
     settingsBytes: JSON.stringify(combined, null, 4),
   };

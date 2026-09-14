@@ -1,11 +1,11 @@
-// U1 / Snapmaker Orca compatibility rules
+// KS1 / Snapmaker Orca compatibility rules
 
 // Central compatibility layer.
 //
 // Detects known Bambu → Snapmaker Orca incompatibilities and either
 // reports them or rewrites the affected settings.
 
-function analyzeU1Compatibility(settings, options = {}) {
+function analyzeKS1Compatibility(settings, options = {}) {
   const actions = [];
   const warnings = [];
 
@@ -45,7 +45,7 @@ function analyzeU1Compatibility(settings, options = {}) {
       });
     } else {
       warnings.push(
-        'Variable layer height is not supported with Tree Default/Organic support style in SnOrca/U1.'
+        'Variable layer height is not supported with Tree Default/Organic support style in SnOrca/KS1.'
       );
 
       warnings.push(
@@ -67,7 +67,7 @@ function analyzeU1Compatibility(settings, options = {}) {
       key: 'raft_first_layer_expansion',
       value: '2',
       reason:
-        'Negative raft first-layer expansion is not valid for the Snapmaker U1 profile and was reset to the native U1 default.'
+        'Negative raft first-layer expansion is not valid for the Snapmaker KS1 profile and was reset to the native KS1 default.'
     });
   }
 
@@ -77,7 +77,7 @@ function analyzeU1Compatibility(settings, options = {}) {
   };
 }
 
-function applyU1Compatibility(settings, report) {
+function applyKS1Compatibility(settings, report) {
   if (!report || !Array.isArray(report.actions)) return;
 
   for (const action of report.actions) {
@@ -94,7 +94,7 @@ function applyU1Compatibility(settings, report) {
   }
 }
 
-// U1 USER OPTION COMPATIBILITY RULES
+// KS1 USER OPTION COMPATIBILITY RULES
 function addDifferentSetting(settings, key) {
   if (!settings || !key) return;
 
@@ -145,7 +145,7 @@ function removeDifferentSetting(settings, key) {
       .join(';');
 }
 
-function applyU1UserOptionCompatibilityRules(settings, options = {}) {
+function applyKS1UserOptionCompatibilityRules(settings, options = {}) {
   const actions = [];
   const warnings = [];
 
@@ -165,7 +165,7 @@ function applyU1UserOptionCompatibilityRules(settings, options = {}) {
       type: 'set',
       key: 'exclude_object',
       value: '1',
-      reason: 'Exclude Object was enabled to preserve Adaptive Bed Mesh and object-aware features in the converted U1 project.'
+      reason: 'Exclude Object was enabled to preserve Adaptive Bed Mesh and object-aware features in the converted KS1 project.'
     });
   }
 

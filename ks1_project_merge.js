@@ -1,7 +1,7 @@
-// Merges portable process settings from the source project into the U1 template.
+// Merges portable process settings from the source project into the KS1 template.
 //
 // Printer-, machine- and filament-specific settings intentionally remain
-// controlled by the selected U1 profile.
+// controlled by the selected KS1 profile.
 
 function parseDifferentSettingsToSystem(value) {
   if (!value) return [];
@@ -13,7 +13,7 @@ function bambuCurrentValue(value) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function isBlockedForU1ProjectMerge(key) {
+function isBlockedForKS1ProjectMerge(key) {
   const k = String(key || '').toLowerCase();
   return (
     k.startsWith('machine_') ||
@@ -35,7 +35,7 @@ function isBlockedForU1ProjectMerge(key) {
 
 function isPortableProcessKey(key) {
   const k = String(key || '').toLowerCase();
-  if (isBlockedForU1ProjectMerge(k)) return false;
+  if (isBlockedForKS1ProjectMerge(k)) return false;
 
   return (
     k.includes('layer') ||
@@ -73,7 +73,7 @@ const FORCE_PROFILE_LOCKED_PROCESS_KEYS = new Set([
   'initial_layer_print_height',
 ]);
 
-function coerceValueForU1Template(sourceValue, targetValue) {
+function coerceValueForKS1Template(sourceValue, targetValue) {
   const v = bambuCurrentValue(sourceValue);
   if (Array.isArray(targetValue) && !Array.isArray(v)) {
     return targetValue.map(() => v);
@@ -82,16 +82,16 @@ function coerceValueForU1Template(sourceValue, targetValue) {
 }
 
 function classifyProcessMergeKey(key, combined) {
-  const existsInU1Template = Object.prototype.hasOwnProperty.call(combined, key);
-  const blocked = isBlockedForU1ProjectMerge(key);
+  const existsInKS1Template = Object.prototype.hasOwnProperty.call(combined, key);
+  const blocked = isBlockedForKS1ProjectMerge(key);
   const portable = isPortableProcessKey(key);
 
   let category = 'unknown';
 
   if (blocked) {
     category = 'blocked';
-  } else if (existsInU1Template) {
-    category = 'native_u1';
+  } else if (existsInKS1Template) {
+    category = 'native_ks1';
   } else if (portable) {
     category = 'portable_heuristic';
   }
@@ -100,12 +100,12 @@ function classifyProcessMergeKey(key, combined) {
     key,
     category,
     blocked,
-    existsInU1Template,
+    existsInKS1Template,
     portableByHeuristic: portable,
   };
 }
 
-function mergeBambuProcessSettingsIntoU1(combined, origSettings, options = {}) {
+function mergeBambuProcessSettingsIntoKS1(combined, origSettings, options = {}) {
   const smartProcessMerge = options.smartProcessMerge !== false;
   const strictProcessMerge = options.strictProcessMerge === true;
 
@@ -153,34 +153,34 @@ function mergeBambuProcessSettingsIntoU1(combined, origSettings, options = {}) {
     }
 
     if (classification.blocked) {
-      row.reason = 'blocked-u1-printer-machine-filament-or-gcode-key';
+      row.reason = 'blocked-ks1-printer-machine-filament-or-gcode-key';
       report.blocked.push(row);
       continue;
     }
 
-    if (strictProcessMerge && !classification.existsInU1Template) {
-      row.reason = 'strict-mode-key-not-in-u1-template';
+    if (strictProcessMerge && !classification.existsInKS1Template) {
+      row.reason = 'strict-mode-key-not-in-ks1-template';
       report.skipped.push(row);
       continue;
     }
 
-    if (smartProcessMerge && !classification.existsInU1Template && !classification.portableByHeuristic) {
+    if (smartProcessMerge && !classification.existsInKS1Template && !classification.portableByHeuristic) {
       row.reason = 'smart-mode-not-portable';
       report.skipped.push(row);
       continue;
     }
 
-    if (!smartProcessMerge && !classification.existsInU1Template && !classification.portableByHeuristic) {
+    if (!smartProcessMerge && !classification.existsInKS1Template && !classification.portableByHeuristic) {
       row.reason = 'legacy-unknown';
       report.skipped.push(row);
       continue;
     }
 
-    combined[key] = coerceValueForU1Template(origSettings[key], combined[key]);
+    combined[key] = coerceValueForKS1Template(origSettings[key], combined[key]);
 
     row.finalValue = combined[key];
-    row.reason = classification.existsInU1Template
-      ? 'merged-native-u1-key'
+    row.reason = classification.existsInKS1Template
+      ? 'merged-native-ks1-key'
       : 'merged-portable-heuristic-key';
 
     report.merged.push(row);

@@ -1,9 +1,9 @@
-// Developer/debug report for converted U1 projects.
+// Developer/debug report for converted KS1 projects.
 //
 // Summarizes parser results, filament mapping, process merge decisions,
 // compatibility actions and optional deep diagnostics in the browser console.
 
-function logU1ProjectReport(project) {
+function logKS1ProjectReport(project) {
   if (!project) return;
 
   const options = project.options || {};
@@ -34,7 +34,7 @@ function logU1ProjectReport(project) {
     project.original?.settings?.filament_settings_id?.length || 0
   );
 
-  console.groupCollapsed('[U1 Project Report]');
+  console.groupCollapsed('[KS1 Project Report]');
 
   const conversionMs =
     project.converter?.conversionMs;
@@ -47,7 +47,7 @@ function logU1ProjectReport(project) {
       : null;
 
   const diagnosticsMetadata =
-    project.options?.u1Diagnostics
+    project.options?.ks1Diagnostics
       ?.metadata ||
     {};
 
@@ -106,7 +106,7 @@ function logU1ProjectReport(project) {
     compatibilityWarnings: compatibility.warnings?.length || 0,
   });
 
-  logU1PerformanceReport(
+  logKS1PerformanceReport(
     project.converter?.performance,
 
     deepDebugReport
@@ -137,31 +137,31 @@ function logU1ProjectReport(project) {
         project.original?.settings?.filament_settings_id?.[i],
 
       final_settings_id:
-        project.u1?.settings?.filament_settings_id?.[i],
+        project.ks1?.settings?.filament_settings_id?.[i],
 
       source_vendor:
         project.original?.settings?.filament_vendor?.[i],
 
       final_vendor:
-        project.u1?.settings?.filament_vendor?.[i],
+        project.ks1?.settings?.filament_vendor?.[i],
 
       source_type:
         project.original?.settings?.filament_type?.[i],
 
       final_type:
-        project.u1?.settings?.filament_type?.[i],
+        project.ks1?.settings?.filament_type?.[i],
 
       source_color:
         project.original?.settings?.filament_colour?.[i],
 
       final_color:
-        project.u1?.settings?.filament_colour?.[i],
+        project.ks1?.settings?.filament_colour?.[i],
 
       source_diff:
         project.original?.settings?.different_settings_to_system?.[i + 1],
 
       final_diff:
-        project.u1?.settings?.different_settings_to_system?.[i + 1],
+        project.ks1?.settings?.different_settings_to_system?.[i + 1],
     }))
   );
 
@@ -171,11 +171,11 @@ function logU1ProjectReport(project) {
 
   const requestedPrinterProfile =
     printerProfile?.requested ||
-    U1_CUSTOM_PRINTER_STANDARD_ID;
+    KS1_CUSTOM_PRINTER_STANDARD_ID;
 
   const standardPrinterProfileSelected =
     requestedPrinterProfile ===
-    U1_CUSTOM_PRINTER_STANDARD_ID;
+    KS1_CUSTOM_PRINTER_STANDARD_ID;
 
   console.log('summary:', printerProfile ? {
     targetSlicer,
@@ -189,7 +189,7 @@ function logU1ProjectReport(project) {
 
     selected:
       printerProfile.selected ||
-      project.u1?.settings?.printer_settings_id ||
+      project.ks1?.settings?.printer_settings_id ||
       null,
 
     inheritedFrom:
@@ -230,7 +230,7 @@ function logU1ProjectReport(project) {
     console.groupCollapsed('orca compatibility');
 
     const finalSettings =
-      project.u1?.settings || {};
+      project.ks1?.settings || {};
 
     const targetExtruders =
       printerProfile?.targetExtruderCount ??
@@ -558,13 +558,13 @@ function logU1ProjectReport(project) {
   console.groupEnd();
 
   if (deepDebugReport) {
-    logU1DeepDiagnostics(project);
+    logKS1DeepDiagnostics(project);
   }
 
   console.groupEnd();
 }
 
-function logU1PerformanceReport(
+function logKS1PerformanceReport(
   performanceData,
   parserPerformance,
   multiPlatePositioning = null
@@ -605,7 +605,7 @@ function logU1PerformanceReport(
       duration: formatMs(timings.projectParseMs),
     },
     {
-      stage: 'Build U1 project',
+      stage: 'Build KS1 project',
       duration: formatMs(timings.projectBuildMs),
     },
     {
@@ -736,7 +736,7 @@ function logU1PerformanceReport(
   console.groupEnd();
 }
 
-function logU1OutputDownloadReport(
+function logKS1OutputDownloadReport(
   downloadReport
 ) {
   if (!downloadReport) return;
@@ -756,7 +756,7 @@ function logU1OutputDownloadReport(
     null;
 
   console.groupCollapsed(
-    '[U1 Project Report] output download'
+    '[KS1 Project Report] output download'
   );
 
   console.log('summary:', {
@@ -832,16 +832,16 @@ function formatPrintProfileSummaryForReport(processPreset = {}) {
 
   if (mode === 'force') {
     return {
-      mode: 'Force U1 print profile',
-      forcedProfile: processPreset.resolved_u1_profile || null,
+      mode: 'Force KS1 print profile',
+      forcedProfile: processPreset.resolved_ks1_profile || null,
       forcedProfileId: processPreset.forcedProfileId || null,
       ignoredSource:
         processPreset.source_ignored ||
         processPreset.source_default_print_profile ||
         processPreset.source_print_settings_id ||
         null,
-      resolvedU1Profile: processPreset.resolved_u1_profile || null,
-      reason: 'User selected Force U1 print profile',
+      resolvedKS1Profile: processPreset.resolved_ks1_profile || null,
+      reason: 'User selected Force KS1 print profile',
     };
   }
 
@@ -852,7 +852,7 @@ function formatPrintProfileSummaryForReport(processPreset = {}) {
       processPreset.source_default_print_profile ||
       processPreset.source_print_settings_id ||
       null,
-    resolvedU1Profile: processPreset.resolved_u1_profile || null,
+    resolvedKS1Profile: processPreset.resolved_ks1_profile || null,
     detection:
       processPreset.selection_reason === 'default_print_profile'
         ? 'default_print_profile'
@@ -863,8 +863,8 @@ function formatPrintProfileSummaryForReport(processPreset = {}) {
   };
 }
 
-function logU1DeepDiagnostics(project) {
-  console.groupCollapsed('[U1 Deep Diagnostics]');
+function logKS1DeepDiagnostics(project) {
+  console.groupCollapsed('[KS1 Deep Diagnostics]');
 
   const processMerge  = project.analysis?.processMerge || {};
 
@@ -979,7 +979,7 @@ function readModelSettingsExtruderMetadata(project) {
 }
 
 function logFilamentSlotDifferences(project) {
-  const filamentKeys = Object.keys(project.u1?.settings || {})
+  const filamentKeys = Object.keys(project.ks1?.settings || {})
     .filter(k => k.startsWith('filament_'))
     .sort();
 
@@ -1010,8 +1010,8 @@ function logFilamentSlotDifferences(project) {
       const sourceA = slotValue(project.original?.settings, key, a);
       const sourceB = b < filamentSlotCount ? slotValue(project.original?.settings, key, b) : undefined;
 
-      const finalA = slotValue(project.u1?.settings, key, a);
-      const finalB = b < filamentSlotCount ? slotValue(project.u1?.settings, key, b) : undefined;
+      const finalA = slotValue(project.ks1?.settings, key, a);
+      const finalB = b < filamentSlotCount ? slotValue(project.ks1?.settings, key, b) : undefined;
 
       if (
         sourceA !== sourceB ||
@@ -1023,8 +1023,8 @@ function logFilamentSlotDifferences(project) {
             ? project.original.settings[key].length
             : null,
 
-          finalLength: Array.isArray(project.u1?.settings?.[key])
-            ? project.u1.settings[key].length
+          finalLength: Array.isArray(project.ks1?.settings?.[key])
+            ? project.ks1.settings[key].length
             : null,
           sourceA,
           sourceB,
