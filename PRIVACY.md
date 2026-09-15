@@ -1,6 +1,6 @@
 # Privacy Statement
 
-**MakerWorld to Anycubic Kobra S1 — Chrome Extension**
+**MakerWorld to Anycubic Kobra S1 — Browser Extension (Chrome & Firefox)**
 
 This document describes what data the extension accesses and how it is handled,
 based on the current implementation.
@@ -22,7 +22,7 @@ The extension operates on MakerWorld model pages to:
 
 | Data | Purpose | Stored? | Transmitted? |
 |---|---|---|---|
-| MakerWorld page DOM | Inject U1 carousel option and intercept download | No | No |
+| MakerWorld page DOM | Inject Kobra S1 printer option and intercept download | No | No |
 | `.3mf` file downloaded from MakerWorld | In-browser conversion | No | No |
 | Extension settings (print profile, converter options and user preferences) | User preferences | Browser storage only | No |
 
@@ -45,11 +45,16 @@ this project.
 
 ## Extension storage
 
-User settings (selected print profile, converter options, filament preset mode 
-and other user preferences) are stored in `chrome.storage.sync`. This storage is managed by
-the browser and may be synced across devices by the browser's built-in sync
-feature if the user has browser sync enabled. No settings data is transmitted
-to servers operated by this project.
+User data is stored only in browser-managed extension storage, split by purpose:
+
+- `storage.sync` — user settings (selected print profile, converter options,
+  filament preset mode and other user preferences). The browser may sync this
+  across devices if the user has browser sync enabled.
+- `storage.local` — user-imported custom printer profiles.
+- `storage.session` — transient per-download state used only to apply the
+  expected filename to the converted file download (Chromium only).
+
+No settings or profile data is transmitted to servers operated by this project.
 
 ## Analytics and telemetry
 
@@ -60,8 +65,10 @@ remote error reporting of any kind.
 
 The extension interacts only with:
 
-- **MakerWorld** (`makerworld.com`) — to intercept the user-initiated download
-- **Chrome extension APIs** — for storage and downloads
+- **MakerWorld** (`makerworld.com`, `makerworld.com.cn`) — to intercept the
+  user-initiated download, including the MakerWorld-signed file-delivery (CDN)
+  URL that MakerWorld's own download response supplies for that download.
+- **Browser extension APIs** — for storage and downloads.
 
 No other third-party services are contacted by this extension.
 

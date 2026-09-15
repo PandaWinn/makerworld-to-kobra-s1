@@ -34,8 +34,10 @@ Noncommercial License 1.0.0. See `LICENSE-POLYFORM` for the full license text.
 
 ## JSZip
 
-- **Project:** JSZip
+- **Project:** JSZip v3.10.1 (unmodified upstream distribution build,
+  `lib/jszip.min.js`)
 - **Source:** https://stuk.github.io/jszip/
 - **License:** MIT License / GPLv3 (dual-licensed; MIT is used here)
 
-JSZip is used to read and write `.3mf` archive files in-browser.
+JSZip is used to read and write `.3mf` archive files in-browser. The
+distribution build bundles pako (MIT, https://github.com/nodeca/pako).
