@@ -33,13 +33,11 @@ All conversion happens locally inside your browser.
 
 ## MakerWorld Integration
 
-![MakerWorld](screenshots/converter-button.png)
+![MakerWorld](screenshots/makerworld-profiles.png)
 
 The extension integrates directly into MakerWorld.
 
 Converting a project is as simple as clicking **Convert to Anycubic Kobra S1**. The converted project is downloaded automatically as a `.3mf` file with the `-KobraS1` suffix and can be opened directly in Anycubic Slicer Next.
-
-![Generated file](screenshots/3mf.png)
 
 ---
 
@@ -128,8 +126,6 @@ This prevents preserved project filaments from silently falling back to unrelate
 
 ### Conversion error reporting
 
-<img src="screenshots/error.png" alt="Conversion Error" width="650">
-
 If a conversion fails, the extension displays a detailed error message directly inside MakerWorld instead of only reporting that the conversion failed.
 
 The error panel includes:
@@ -139,17 +135,13 @@ The error panel includes:
 - A suggested action to help resolve the problem
 - A one-click **Error Report** button that copies a complete diagnostic report to the clipboard
 
-<img src="screenshots/report_copy.png" alt="Copied Error Report" width="650">
-
 The copied report contains all technical information required for bug reports, making it much easier to identify and resolve conversion problems.
 
 ---
 
 ## Converter Settings
 
-![Converter Settings](screenshots/settings1.png)
-
-![Converter Settings](screenshots/settings2.png)
+![Converter Settings](screenshots/settings.png)
 
 The extension includes several optional settings to customize the conversion process.
 
@@ -317,9 +309,7 @@ The `dist` directory is generated locally and is excluded from Git.
 
 The generated project opens as a normal Anycubic Slicer Next or Orca project and is ready for review before printing.
 
-![Anycubic Slicer Next](screenshots/project.png)
-
-![Orca](screenshots/orca.png)
+![Anycubic Slicer Next](screenshots/slicer-result.png)
 ---
 
 ## Credits
