@@ -59,10 +59,10 @@ git add native_host/ks1_open_host.py && git commit -m "feat: add native-messagin
 
 **Interfaces:**
 - Consumes: `native_host/ks1_open_host.py` absolute path.
-- Produces: `$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.pandawinn.makerworld_kobra_s1.json` and `$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/com.pandawinn.makerworld_kobra_s1.json`, each:
+- Produces: `$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.kobra-s1.makerworld_bridge.json` and `$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/com.kobra-s1.makerworld_bridge.json`, each:
 ```json
 {
-  "name": "com.pandawinn.makerworld_kobra_s1",
+  "name": "com.kobra-s1.makerworld_bridge",
   "description": "MakerWorld to Kobra S1 one-click open bridge",
   "path": "<ABSOLUTE PATH TO ks1_open_host.py>",
   "type": "stdio",
@@ -71,7 +71,7 @@ git add native_host/ks1_open_host.py && git commit -m "feat: add native-messagin
 ```
 Problem: extension IDs are unknown pre-store (Chrome ID assigned on publish; Firefox UUID per install). Solution used by other bridges: `allowed_origins` with Chrome ID filled at publish time is brittle — instead `install.sh` accepts `--chrome-id ID` (default: allow Chrome Web Store ID once known; until then document that Chrome needs its ID) — NO. Simpler correct approach: Chrome REQUIRES listed origins; there is no wildcard. So `install.sh --chrome-id <id> [--firefox-id <uuid>]`, defaulting Firefox to empty (Firefox ignores `allowed_origins`? No — Firefox USES `allowed_extensions` instead and ignores `allowed_origins`). Correct per-browser split:
 - Chrome manifest: `allowed_origins: ["chrome-extension://<id>/"]` (required; script requires `--chrome-id`, aborts with usage otherwise).
-- Firefox manifest: `allowed_extensions: ["makerworld-to-kobra-s1@pandawinn"]` (uses the stable gecko id from `manifest.firefox.json`; no per-install UUID needed).
+- Firefox manifest: `allowed_extensions: ["{cb117586-ce92-423f-8267-edf658627950}"]` (uses the stable gecko id from `manifest.firefox.json`; no per-install UUID needed).
 `install.sh` validates python3 exists, `chmod +x` the host, writes both files, then smoke-tests: pipes a framed `ping` to the host and asserts `ok:true`. Flags: `--uninstall` removes both JSONs.
 
 - [ ] **Step 1: Write `native_host/install.sh`** (bash, `set -euo pipefail`, ~60 lines) + `chmod +x`.
@@ -107,7 +107,7 @@ git add native_host/install.sh && git commit -m "feat: add macOS installer for o
 
 **Interfaces:**
 - `ks1_native_bridge.js` produces (exact names):
-  - `const KS1_BRIDGE_HOST = 'com.pandawinn.makerworld_kobra_s1'`
+  - `const KS1_BRIDGE_HOST = 'com.kobra-s1.makerworld_bridge'`
   - `const KS1_BRIDGE_CHUNK_SIZE = 524288`
   - `function buildKS1OpenPlan(filename, totalBytes)` → `{transferId (random hex 16), filename (sanitized same rules as host), totalBytes, totalChunks}`
   - `function encodeKS1Chunk(bytesUint8, index)` → base64 string slice for that chunk (uses global `btoa`; chunking is byte-exact: `bytes.subarray(index*SIZE, (index+1)*SIZE)`)

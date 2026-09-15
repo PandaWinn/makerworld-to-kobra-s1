@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Retarget the fork at `/Users/lucas/projects/makerworld-to-snapmaker-u1` (v1.6.2, `main` @ `4002d85`) from Snapmaker U1 to Anycubic Kobra S1 + Anycubic Slicer Next, as an extension-only Chrome + Firefox MV3 package with no local process.
+**Goal:** Retarget the fork at `~/projects/makerworld-to-kobra-s1` (v1.6.2, `main` @ `4002d85`) from Snapmaker U1 to Anycubic Kobra S1 + Anycubic Slicer Next, as an extension-only Chrome + Firefox MV3 package with no local process.
 
-**Architecture:** Data-and-strings retarget, not a logic rewrite. The conversion pipeline (fetch-capture → JSZip parse → template-seed + portable-process merge → filament remap → metadata rewrite → repack) is printer-agnostic; only the template pack, printer identity strings, and UI labels are U1-specific. Work happens on branch `kobra-s1-retarget` in the fork clone, pushed to `PandaWinn/makerworld-to-snapmaker-u1`.
+**Architecture:** Data-and-strings retarget, not a logic rewrite. The conversion pipeline (fetch-capture → JSZip parse → template-seed + portable-process merge → filament remap → metadata rewrite → repack) is printer-agnostic; only the template pack, printer identity strings, and UI labels are U1-specific. Work happens on branch `kobra-s1-retarget` in the fork clone, pushed to `PandaWinn/makerworld-to-kobra-s1`.
 
 **Tech Stack:** Vanilla browser JS (no build step), JSZip 3.10.1 (vendored), Node v22 (available, for `--check` + functional smoke tests only — NOT added to the repo), Python3 (template generation scripts live in `/tmp`, NOT committed).
 
@@ -162,7 +162,7 @@ git add -A && git commit -m "refactor: rename U1 identifiers to KS1 (no behavior
 - Modify: `converter.js` (orchestrator comment, `'Snapmaker Orca'` target label → `'Anycubic Slicer Next'`, `'The Snapmaker U1 project could not be created.'` → Kobra wording)
 - Modify: `content.js` (button labels ×3 `Convert to Snapmaker U1` → `Convert to Kobra S1`, tile label `Snapmaker U1` → `Kobra S1`, `-U1.3mf` → `-KobraS1.3mf`, `model-U1` → `model-KobraS1`, target label `Snapmaker Orca` → `Anycubic Slicer Next`, console prefix `[U1 Extension]` → `[KobraS1 Extension]`, printer-wrapper warning → Kobra wording)
 - Modify: `background.js` (any U1 filename/error strings — grep first), `options.js` (comment line 112 + any UI copy — grep `Snapmaker|U1` in `options.html` too), `ks1_error_report.js` (title `MakerWorld to Anycubic Kobra S1 — Error Report`), `ks1_project_report.js` (`'Snapmaker Orca'` default → `'Anycubic Slicer Next'`)
-- Modify: `manifest.json`, `manifest.firefox.json` (`name: MakerWorld to Kobra S1`, `description: Convert MakerWorld print profiles into Anycubic Kobra S1 project files directly in your browser.`, firefox `gecko.id: makerworld-to-kobra-s1@pandawinn`, `version: 1.0.0` both)
+- Modify: `manifest.json`, `manifest.firefox.json` (`name: MakerWorld to Kobra S1`, `description: Convert MakerWorld print profiles into Anycubic Kobra S1 project files directly in your browser.`, firefox `gecko.id: {cb117586-ce92-423f-8267-edf658627950}`, `version: 1.0.0` both)
 - Modify: `build.ps1` (dist names `makerworld-to-snapmaker-u1-*` → `makerworld-to-kobra-s1-*`), `README.md` + `BUILD.md` (title + profile references; keep a one-line fork-lineage note pointing at upstream `Dragon2203/makerworld-to-snapmaker-U1` v1.6.2)
 
 **Interfaces:**

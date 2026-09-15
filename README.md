@@ -336,7 +336,7 @@ Current architecture, parser engine, compatibility layer and ongoing development
 - Dragon2203
 
 Kobra S1 retarget (template pack, printer identity, UI):
-- PandaWinn (fork of Dragon2203/makerworld-to-snapmaker-U1 v1.6.2)
+- Community fork of Dragon2203/makerworld-to-snapmaker-U1 v1.6.2
 
 See `THIRD_PARTY_NOTICES.md` for complete attribution information.
 

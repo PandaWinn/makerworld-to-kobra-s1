@@ -29,13 +29,13 @@ Decision (2026-09-14): ship download-only for now; revisit one-click open later.
 ## Why it can't work on Firefox yet (root cause, verified 2026-09-14)
 
 The user's Firefox install **did** have a correct manifest
-(`~/Library/Application Support/Mozilla/NativeMessagingHosts/com.pandawinn.makerworld_kobra_s1.json`,
+(`~/Library/Application Support/Mozilla/NativeMessagingHosts/com.kobra-s1.makerworld_bridge.json`,
 correct `allowed_extensions`), and the host answered pings directly —
 yet the extension's helper check failed.
 
 Cause: **temporary add-ons (`about:debugging` loads) get a random ID per
 load**, not the manifest's `browser_specific_settings.gecko.id`. The declared
-id (`makerworld-to-kobra-s1@pandawinn`) only applies after AMO signing, so the
+id (`{cb117586-ce92-423f-8267-edf658627950}`) only applies after AMO signing, so the
 allowlist never matches an unsigned temporary load. No installer flag or
 reload can fix this; it is inherent to the platform.
 
@@ -50,7 +50,9 @@ reload can fix this; it is inherent to the platform.
    `./native_host/install.sh --chrome-id <id>`. Expected to work immediately;
    never tested end-to-end (user chose download-only before trying).
 3. Code: `git checkout archive/slicer-bridge -- native_host ks1_native_bridge.js`
-   plus the extension wiring (see the plan doc's Task 3 file list).
+   plus the extension wiring (see the plan doc's Task 3 file list). Note: the
+   archived code predates the anonymity scrub — regenerate all bridge/host
+   identifiers neutrally (this doc's names) before any public use.
 
 ## Related finding (Makeronline comparison)
 
