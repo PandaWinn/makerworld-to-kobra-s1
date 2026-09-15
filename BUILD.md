@@ -1,4 +1,4 @@
-# Building MakerWorld to Snapmaker U1
+# Building MakerWorld to Anycubic Kobra S1
 
 This document describes how to reproduce the browser extension packages submitted to Mozilla Add-ons and published through GitHub Releases.
 
@@ -50,6 +50,8 @@ All other runtime source files are shared between both browser packages.
 
 ## Build Instructions
 
+### Windows
+
 1. Extract the submitted source archive or clone the repository.
 2. Open Windows PowerShell in the project root directory.
 3. Run:
@@ -59,6 +61,19 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 No dependencies need to be installed before running this command.
+
+### macOS / Linux
+
+1. Clone the repository.
+2. Open a terminal in the project root directory.
+3. Run:
+
+```bash
+./build.sh
+```
+
+Requires `bash` and `python3` (preinstalled on macOS). `build.sh` mirrors the
+file lists in `build.ps1` — keep both in sync when adding runtime files.
 
 ## Build Output
 
@@ -71,21 +86,21 @@ dist/
 ├── chrome/
 ├── firefox/
 ├── source/
-├── makerworld-to-snapmaker-u1-chrome-v<version>.zip
-├── makerworld-to-snapmaker-u1-firefox-v<version>.zip
-└── makerworld-to-snapmaker-u1-source-v<version>.zip
+├── makerworld-to-kobra-s1-chrome-v<version>.zip
+├── makerworld-to-kobra-s1-firefox-v<version>.zip
+└── makerworld-to-kobra-s1-source-v<version>.zip
 ```
 
 The Firefox package submitted to Mozilla Add-ons is:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v<version>.zip
+dist/makerworld-to-kobra-s1-firefox-v<version>.zip
 ```
 
 For version 1.1.0, the exact file is:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v1.1.0.zip
+dist/makerworld-to-kobra-s1-firefox-v1.1.0.zip
 ```
 
 The Firefox output contains the contents of `manifest.firefox.json` under the required filename `manifest.json`.
@@ -102,7 +117,7 @@ To reproduce the submitted Firefox add-on exactly:
 4. Use the generated file:
 
 ```text
-dist/makerworld-to-snapmaker-u1-firefox-v1.1.0.zip
+dist/makerworld-to-kobra-s1-firefox-v1.1.0.zip
 ```
 
 No project source files are transformed, transpiled or minified during this process. The build script only selects the required runtime files, applies the browser-specific manifest filename and creates the release archive.

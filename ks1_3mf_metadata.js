@@ -1,4 +1,4 @@
-// Rewrites 3MF metadata that must reference the converted U1 project.
+// Rewrites 3MF metadata that must reference the converted KS1 project.
 //
 // Geometry and model data remain unchanged whenever possible.
 
@@ -26,7 +26,7 @@ async function rewriteSliceInfoConfig(
 
   sliceXml = sliceXml.replace(
     /key="printer_model_id"\s+value="[^"]*"/g,
-    'key="printer_model_id" value="Snapmaker U1"'
+    'key="printer_model_id" value="Anycubic Kobra S1"'
   );
 
   const doc = parseXml(sliceXml);
@@ -327,9 +327,9 @@ function createMultiPlatePositioningReport(
       ? {
           printerModel:
             String(
-              project?.u1?.settings?.printer_model ||
-              project?.u1?.settings?.printer_settings_id ||
-              'Snapmaker U1'
+              project?.ks1?.settings?.printer_model ||
+              project?.ks1?.settings?.printer_settings_id ||
+              'Anycubic Kobra S1'
             ),
 
           minX: roundMultiPlateNumber(targetArea.minX),
@@ -399,7 +399,7 @@ function addMultiPlateCompatibilityAction(
     type: 'rewrite-model-transforms',
 
     reason:
-      'Multi-plate object positions were adjusted from the source printer grid to the Snapmaker U1 grid.',
+      'Multi-plate object positions were adjusted from the source printer grid to the Anycubic Kobra S1 grid.',
 
     plateCount: report.plateCount,
     adjustedPlateCount: report.adjustedPlateCount,
@@ -444,7 +444,7 @@ function rewriteMultiPlateModel(project) {
   );
 
   const targetArea = parsePrintableArea(
-    project?.u1?.settings?.printable_area
+    project?.ks1?.settings?.printable_area
   );
 
   let plateCount = 0;
@@ -531,7 +531,7 @@ function rewriteMultiPlateModel(project) {
     addMultiPlateCompatibilityWarning(
       project,
       report,
-      'Multi-plate positioning was skipped because the target U1 printable_area could not be read.'
+      'Multi-plate positioning was skipped because the target KS1 printable_area could not be read.'
     );
 
     return finish(null);
@@ -836,7 +836,7 @@ function rewriteMultiPlateModel(project) {
   );
 }
 
-async function rewriteU13mfMetadata(zip, project) {
+async function rewriteKS13mfMetadata(zip, project) {
   const idMapping = buildFilamentIdMapping(
     project.filaments.source
   );

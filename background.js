@@ -11,22 +11,22 @@
 const isFirefoxBackground =
   chrome.runtime.getURL('').startsWith('moz-extension://');
 
-const pendingU1DownloadResponses =
+const pendingKS1DownloadResponses =
   new Map();
 
-let u1FilenameListenerRegistered =
+let ks1FilenameListenerRegistered =
   false;
 
-function getU1PendingDownloadStorageKey(
+function getKS1PendingDownloadStorageKey(
   url
 ) {
   return (
-    'u1-pending-download:' +
+    'ks1-pending-download:' +
     String(url || '')
   );
 }
 
-function getU1DownloadBasename(
+function getKS1DownloadBasename(
   filename
 ) {
   const value =
@@ -40,10 +40,10 @@ function getU1DownloadBasename(
   );
 }
 
-function removeU1FilenameListenerIfIdle() {
+function removeKS1FilenameListenerIfIdle() {
   if (
-    pendingU1DownloadResponses.size > 0 ||
-    !u1FilenameListenerRegistered
+    pendingKS1DownloadResponses.size > 0 ||
+    !ks1FilenameListenerRegistered
   ) {
     return;
   }
@@ -52,20 +52,20 @@ function removeU1FilenameListenerIfIdle() {
     chrome.downloads
       .onDeterminingFilename
       .removeListener(
-        handleU1DeterminingFilename
+        handleKS1DeterminingFilename
       );
   } catch {
     // Nothing to clean up.
   }
 
-  u1FilenameListenerRegistered =
+  ks1FilenameListenerRegistered =
     false;
 }
 
-function cleanupU1PendingDownload(
+function cleanupKS1PendingDownload(
   storageKey
 ) {
-  pendingU1DownloadResponses.delete(
+  pendingKS1DownloadResponses.delete(
     storageKey
   );
 
@@ -73,16 +73,16 @@ function cleanupU1PendingDownload(
     storageKey
   );
 
-  removeU1FilenameListenerIfIdle();
+  removeKS1FilenameListenerIfIdle();
 }
 
-function completeU1DownloadResponse(
+function completeKS1DownloadResponse(
   storageKey,
   downloadId,
   filenameForced
 ) {
   const pendingResponse =
-    pendingU1DownloadResponses.get(
+    pendingKS1DownloadResponses.get(
       storageKey
     );
 
@@ -90,7 +90,7 @@ function completeU1DownloadResponse(
     return;
   }
 
-  cleanupU1PendingDownload(
+  cleanupKS1PendingDownload(
     storageKey
   );
 
@@ -108,9 +108,9 @@ function completeU1DownloadResponse(
   });
 }
 
-function ensureU1FilenameListener() {
+function ensureKS1FilenameListener() {
   if (
-    u1FilenameListenerRegistered ||
+    ks1FilenameListenerRegistered ||
     isFirefoxBackground ||
     !chrome.downloads
       ?.onDeterminingFilename
@@ -121,10 +121,10 @@ function ensureU1FilenameListener() {
   chrome.downloads
     .onDeterminingFilename
     .addListener(
-      handleU1DeterminingFilename
+      handleKS1DeterminingFilename
     );
 
-  u1FilenameListenerRegistered =
+  ks1FilenameListenerRegistered =
     true;
 }
 
@@ -134,11 +134,11 @@ chrome.action.onClicked.addListener(() => {
 
 // Optional Chromium filename forcing.
 //
-// This listener is registered only while a converted U1 download explicitly
+// This listener is registered only while a converted KS1 download explicitly
 // requests filename forcing. With the option disabled, Chromium uses the
 // normal downloads.download({ filename }) path without this listener.
 
-function handleU1DeterminingFilename(
+function handleKS1DeterminingFilename(
   downloadItem,
   suggest
 ) {
@@ -165,7 +165,7 @@ function handleU1DeterminingFilename(
 
   const storageKeys =
     candidateUrls.map(
-      getU1PendingDownloadStorageKey
+      getKS1PendingDownloadStorageKey
     );
 
   if (!storageKeys.length) {
@@ -180,7 +180,7 @@ function handleU1DeterminingFilename(
         chrome.runtime.lastError
       ) {
         console.warn(
-          '[U1 Extension] forced filename state read failed:',
+          '[KobraS1 Extension] forced filename state read failed:',
           chrome.runtime.lastError.message
         );
 
@@ -212,7 +212,7 @@ function handleU1DeterminingFilename(
         }
       }
 
-      // Not one of the currently pending forced U1 downloads.
+      // Not one of the currently pending forced KS1 downloads.
       if (
         !pendingKey ||
         !pending
@@ -222,18 +222,18 @@ function handleU1DeterminingFilename(
       }
 
       const expectedFilename =
-        getU1DownloadBasename(
+        getKS1DownloadBasename(
           pending.expectedFilename
         );
 
       if (!expectedFilename) {
         console.warn(
-          '[U1 Extension] forced filename is empty'
+          '[KobraS1 Extension] forced filename is empty'
         );
 
         suggest();
 
-        completeU1DownloadResponse(
+        completeKS1DownloadResponse(
           pendingKey,
           downloadItem.id,
           false
@@ -250,7 +250,7 @@ function handleU1DeterminingFilename(
           'uniquify',
       });
 
-      completeU1DownloadResponse(
+      completeKS1DownloadResponse(
         pendingKey,
         downloadItem.id,
         true
@@ -263,7 +263,7 @@ function handleU1DeterminingFilename(
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg?.type === 'u1_download') {
+  if (msg?.type === 'ks1_download') {
     const forceFilename =
       msg.forceFilename === true;
 
@@ -292,7 +292,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 .lastError.message;
 
             console.warn(
-              '[U1 Extension] download failed:',
+              '[KobraS1 Extension] download failed:',
               error
             );
 
@@ -325,7 +325,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     // Optional forced-filename compatibility path.
     const storageKey =
-      getU1PendingDownloadStorageKey(
+      getKS1PendingDownloadStorageKey(
         msg.url
       );
 
@@ -343,12 +343,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         Date.now(),
     };
 
-    pendingU1DownloadResponses.set(
+    pendingKS1DownloadResponses.set(
       storageKey,
       sendResponse
     );
 
-    ensureU1FilenameListener();
+    ensureKS1FilenameListener();
 
     const startForcedDownload =
       () => {
@@ -371,12 +371,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 chrome.runtime
                   .lastError.message;
 
-              cleanupU1PendingDownload(
+              cleanupKS1PendingDownload(
                 storageKey
               );
 
               console.warn(
-                '[U1 Extension] download failed:',
+                '[KobraS1 Extension] download failed:',
                 error
               );
 
@@ -411,13 +411,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               .lastError.message;
 
           console.warn(
-            '[U1 Extension] forced filename state could not be stored:',
+            '[KobraS1 Extension] forced filename state could not be stored:',
             storageError
           );
 
           // Do not risk blocking the download when the optional forcing state
           // cannot be prepared. Fall back to the normal Chromium path.
-          cleanupU1PendingDownload(
+          cleanupKS1PendingDownload(
             storageKey
           );
 
@@ -474,7 +474,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
-  if (msg?.type === 'u1_download_firefox') {
+  if (msg?.type === 'ks1_download_firefox') {
     if (!isFirefoxBackground) {
       sendResponse({
         ok: false,
@@ -523,7 +523,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             : String(error);
 
         console.warn(
-          '[U1 Extension] Firefox download failed:',
+          '[KobraS1 Extension] Firefox download failed:',
           message
         );
 

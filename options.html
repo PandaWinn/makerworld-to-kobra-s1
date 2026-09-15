@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>MakerWorld to Snapmaker U1 — Settings</title>
+<title>MakerWorld to Anycubic Kobra S1 — Settings</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -154,7 +154,7 @@
 </style>
 </head>
 <body>
-<h1>MakerWorld to Snapmaker U1 Settings</h1>
+<h1>MakerWorld to Anycubic Kobra S1 Settings</h1>
 
 <section>
   <h2>Printer Profiles</h2>
@@ -168,22 +168,22 @@
     <p class="hint">
       Enables the additional printer and extruder settings required when the
       converted project is opened in regular OrcaSlicer. Leave this disabled
-      for the normal Snapmaker Orca conversion path.
+      for the normal Anycubic Slicer Next conversion path.
     </p>
   </div>
 
   <div id="printerProfileCards">
-    <div class="option-row profile-card" id="snorcaPrinterProfileCard">
+    <div class="option-row profile-card" id="ks1PrinterProfileCard">
       <div class="profile-card-title">
-        Snapmaker Orca printer profile
+        Anycubic Slicer Next printer profile
       </div>
 
       <label>
         <span style="min-width:160px">Printer profile</span>
 
         <select id="customPrinterProfileId">
-          <option value="__standard_u1_printer_profile__">
-            Standard U1 profile
+          <option value="__standard_ks1_printer_profile__">
+            Standard KS1 profile
           </option>
         </select>
       </label>
@@ -222,8 +222,8 @@
         <span style="min-width:160px">Printer profile</span>
 
         <select id="orcaCustomPrinterProfileId">
-          <option value="__standard_u1_printer_profile__">
-            Standard U1 profile
+          <option value="__standard_ks1_printer_profile__">
+            Standard KS1 profile
           </option>
         </select>
       </label>
@@ -274,15 +274,15 @@
     <p class="hint">
       Import a custom printer profile JSON from the corresponding slicer
       folder. After selecting the file, choose whether it belongs to
-      Snapmaker Orca or OrcaSlicer.
+      Anycubic Slicer Next or OrcaSlicer.
     </p>
 
     <div class="profile-info">
       <div class="profile-info-row">
-        <strong>Snapmaker Orca</strong>
+        <strong>Anycubic Slicer Next</strong>
 
         <div>
-          <code class="path-code">C:\Users\&lt;username&gt;\AppData\Roaming\Snapmaker_Orca\user\default\machine</code>
+          <code class="path-code">C:\Users\&lt;username&gt;\AppData\Roaming\AnycubicSlicerNext\user\default\machine</code>
         </div>
       </div>
 
@@ -296,7 +296,7 @@
     </div>
 
     <p class="hint">
-      Imported profiles are stored locally in this browser. Snapmaker Orca
+      Imported profiles are stored locally in this browser. Anycubic Slicer Next
       and OrcaSlicer profiles are managed separately. If you modify a printer profile
       in the slicer, simply import it again. Existing profiles are updated automatically
     </p>
@@ -316,10 +316,10 @@
     <input
       type="radio"
       name="printerProfileTarget"
-      value="snorca"
+      value="ks1"
       checked
     >
-    <span>Snapmaker Orca</span>
+    <span>Anycubic Slicer Next</span>
   </label>
 
   <label>
@@ -358,13 +358,13 @@
       <input type="radio" name="printProfileMode" id="printProfileModePreserve" value="preserve">
       <span>Preserve source print profile</span>
     </label>
-    <p class="hint">Recommended. Automatically detects the source print profile and maps it to the matching U1 profile.</p>
+    <p class="hint">Recommended. Automatically detects the source print profile and maps it to the matching KS1 profile.</p>
   </div>
 
   <div class="option-row">
     <label>
       <input type="radio" name="printProfileMode" id="printProfileModeForce" value="force">
-      <span>Force U1 print profile</span>
+      <span>Force KS1 print profile</span>
     </label>
 
     <div style="margin-top:10px; margin-left:23px">
@@ -372,7 +372,7 @@
       <select id="forcedProfileId" style="display:none"></select>
     </div>
 
-    <p class="hint">Ignores the source print profile and always uses the selected U1 print profile as conversion base.</p>
+    <p class="hint">Ignores the source print profile and always uses the selected KS1 print profile as conversion base.</p>
   </div>
 </section>
 
@@ -392,12 +392,12 @@
 
   <div class="option-row">
     <label><input type="checkbox" id="forceExcludeObject"> <span>Enable Exclude Object</span></label>
-    <p class="hint">Keeps object-aware features available in Snapmaker Orca, such as Adaptive Bed Mesh and per-object handling.</p>
+    <p class="hint">Keeps object-aware features available in Anycubic Slicer Next, such as Adaptive Bed Mesh and per-object handling.</p>
   </div>
 
   <div class="option-row">
     <label><input type="checkbox" id="forceBrimOff"> <span>Disable automatic Brim</span></label>
-    <p class="hint">Prevents Snapmaker Orca from adding unwanted automatic brims to converted projects.</p>
+    <p class="hint">Prevents Anycubic Slicer Next from adding unwanted automatic brims to converted projects.</p>
   </div>
 
   <div class="option-row">
@@ -408,7 +408,7 @@
     <p class="hint">
       Applies the same automatic adjustment Bambu Studio makes when variable
       layer height is combined with tree/organic support, so the project opens
-      cleanly in Snapmaker Orca/U1.
+      cleanly in Anycubic Slicer Next/KS1.
     </p>
   </div>
 
@@ -419,7 +419,7 @@
     </label>
     <p class="hint">
       Adjusts the spacing of objects in projects with multiple build plates
-      from the source printer grid to the Snapmaker U1 grid. The arrangement
+      from the source printer grid to the Anycubic Kobra S1 grid. The arrangement
       of objects within each plate remains unchanged.
     </p>
   </div>
@@ -445,12 +445,12 @@
   
   <div class="option-row">
     <label><input type="checkbox" id="smartProcessMerge"> <span>Merge changed process settings</span></label>
-    <p class="hint">Imports compatible print-setting changes from the MakerWorld profile while keeping U1 machine settings from the selected U1 base profile.</p>
+    <p class="hint">Imports compatible print-setting changes from the MakerWorld profile while keeping KS1 machine settings from the selected KS1 base profile.</p>
   </div>
 
   <div class="option-row">
     <label><input type="checkbox" id="strictProcessMerge"> <span>Strict process merge mode</span></label>
-    <p class="hint">Only imports changed print settings that already exist in the selected U1 base profile. Safer, but may preserve fewer MakerWorld changes.</p>
+    <p class="hint">Only imports changed print settings that already exist in the selected KS1 base profile. Safer, but may preserve fewer MakerWorld changes.</p>
   </div>
 
   <div class="option-row">
@@ -474,7 +474,7 @@
   </div>
 </section>
 
-<section id="u1FaultSimulationSection" style="display:none">
+<section id="ks1FaultSimulationSection" style="display:none">
   <h2>Developer Tools</h2>
 
   <div class="option-row">
@@ -483,7 +483,7 @@
         Simulate next conversion error
       </span>
 
-      <select id="u1TestFault">
+      <select id="ks1TestFault">
         <option value="none">
           None
         </option>
@@ -552,7 +552,7 @@
     </p>
 
     <p class="hint">
-      Simulated errors are marked as simulated in the U1 error report.
+      Simulated errors are marked as simulated in the KS1 error report.
       They do not modify the original MakerWorld file.
     </p>
   </div>
@@ -563,7 +563,7 @@
   <span id="saveStatus"></span>
 </div>
 
-<script src="u1_custom_printer_profiles.js"></script>
+<script src="ks1_custom_printer_profiles.js"></script>
 <script src="options.js"></script>
 </body>
 </html>

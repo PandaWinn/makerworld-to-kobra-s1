@@ -1,6 +1,6 @@
 # Privacy Statement
 
-**MakerWorld to Snapmaker U1 — Chrome Extension**
+**MakerWorld to Anycubic Kobra S1 — Chrome Extension**
 
 This document describes what data the extension accesses and how it is handled,
 based on the current implementation.
@@ -11,9 +11,9 @@ based on the current implementation.
 
 The extension operates on MakerWorld model pages to:
 
-1. Inject a Snapmaker U1 option into the printer filter carousel.
+1. Inject a Anycubic Kobra S1 option into the printer filter carousel.
 2. Intercept MakerWorld's own authenticated `.3mf` download when the user
-   clicks **Convert to Snapmaker U1**.
+   clicks **Convert to Anycubic Kobra S1**.
 3. Convert the downloaded `.3mf` file locally in the browser using bundled
    JavaScript logic.
 4. Trigger a file download of the converted `.3mf` to the user's device.

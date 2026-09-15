@@ -1,38 +1,38 @@
 // Runs in MAIN world — wraps window.fetch to intercept MakerWorld's own
 // authenticated f3mf download requests so we inherit auth for free.
 
-console.log('[U1 injected] loaded');
+console.log('[KS1 injected] loaded');
 
-window.__u1ModeActive = false;
-window.__u1Capturing  = false;
+window.__ks1ModeActive = false;
+window.__ks1Capturing  = false;
 
 // Incremented whenever a capture is started or cancelled.
 // Async responses from an older capture must never satisfy a newer one.
-let u1CaptureGeneration = 0;
+let ks1CaptureGeneration = 0;
 
 const _baseFetch = window.fetch;
 window.fetch = function (url, opts) {
   const p = _baseFetch.apply(this, arguments);
-  if (typeof url === 'string' && url.includes('f3mf') && window.__u1Capturing) {
+  if (typeof url === 'string' && url.includes('f3mf') && window.__ks1Capturing) {
     const captureGeneration =
-      u1CaptureGeneration;
+      ks1CaptureGeneration;
 
-    window.__u1Capturing = false;
+    window.__ks1Capturing = false;
 
-    console.log('[U1 injected] intercepted f3mf fetch:', url);
+    console.log('[KS1 injected] intercepted f3mf fetch:', url);
 
     p.then(async (resp) => {
       if (
         captureGeneration !==
-        u1CaptureGeneration
+        ks1CaptureGeneration
       ) {
         return;
       }
-      console.log('[U1 injected] f3mf status:', resp.status);
+      console.log('[KS1 injected] f3mf status:', resp.status);
       if (!resp.ok) {
         window.dispatchEvent(
           new CustomEvent(
-            '__u1_3mf_err',
+            '__ks1_3mf_err',
             {
               detail:
                 JSON.stringify({
@@ -65,7 +65,7 @@ window.fetch = function (url, opts) {
 
       if (
         captureGeneration !==
-        u1CaptureGeneration
+        ks1CaptureGeneration
       ) {
         return;
       }
@@ -73,11 +73,11 @@ window.fetch = function (url, opts) {
       const blobUrl = URL.createObjectURL(
         new Blob([buffer], { type: 'application/octet-stream' })
       );
-      console.log('[U1 injected] dispatching __u1_3mf');
+      console.log('[KS1 injected] dispatching __ks1_3mf');
 
       window.dispatchEvent(
         new CustomEvent(
-          '__u1_3mf',
+          '__ks1_3mf',
           {
             detail:
               JSON.stringify({
@@ -104,19 +104,19 @@ window.fetch = function (url, opts) {
     }).catch((err) => {
       if (
         captureGeneration !==
-        u1CaptureGeneration
+        ks1CaptureGeneration
       ) {
         return;
       }
 
       console.error(
-        '[U1 injected] capture error:',
+        '[KS1 injected] capture error:',
         err
       );
 
       window.dispatchEvent(
         new CustomEvent(
-          '__u1_3mf_err',
+          '__ks1_3mf_err',
           {
             detail:
               JSON.stringify({
@@ -144,19 +144,19 @@ window.fetch = function (url, opts) {
 
 // MakerWorld may use XMLHttpRequest instead of fetch for the authenticated
 // /f3mf request. Capture that response as well and pass it through the same
-// __u1_3mf event used by the existing fetch interceptor.
+// __ks1_3mf event used by the existing fetch interceptor.
 //
 // Important:
 // The /f3mf response is MakerWorld's small JSON response containing the
 // filename and signed CDN URL. content.js already parses this response and
 // downloads the actual 3MF from the CDN afterwards.
-const u1XhrRequestUrls =
+const ks1XhrRequestUrls =
   new WeakMap();
 
-const u1OriginalXhrOpen =
+const ks1OriginalXhrOpen =
   XMLHttpRequest.prototype.open;
 
-const u1OriginalXhrSend =
+const ks1OriginalXhrSend =
   XMLHttpRequest.prototype.send;
 
 XMLHttpRequest.prototype.open =
@@ -165,12 +165,12 @@ XMLHttpRequest.prototype.open =
     url
   ) {
     const result =
-      u1OriginalXhrOpen.apply(
+      ks1OriginalXhrOpen.apply(
         this,
         arguments
       );
 
-    u1XhrRequestUrls.set(
+    ks1XhrRequestUrls.set(
       this,
       String(url || '')
     );
@@ -181,37 +181,37 @@ XMLHttpRequest.prototype.open =
 XMLHttpRequest.prototype.send =
   function () {
     const requestUrl =
-      u1XhrRequestUrls.get(this) || '';
+      ks1XhrRequestUrls.get(this) || '';
 
     // Leave every unrelated XHR completely untouched.
     if (
-      !window.__u1Capturing ||
+      !window.__ks1Capturing ||
       !requestUrl.includes('f3mf')
     ) {
-      return u1OriginalXhrSend.apply(
+      return ks1OriginalXhrSend.apply(
         this,
         arguments
       );
     }
 
     const captureGeneration =
-      u1CaptureGeneration;
+      ks1CaptureGeneration;
 
     const onLoadEnd =
       async () => {
         // The conversion may have timed out/cancelled while this request
         // was running, or a newer capture may already have started.
         if (
-          !window.__u1Capturing ||
+          !window.__ks1Capturing ||
           captureGeneration !==
-            u1CaptureGeneration
+            ks1CaptureGeneration
         ) {
           return;
         }
 
         // Claim this response so another matching request cannot satisfy
         // the same conversion.
-        window.__u1Capturing =
+        window.__ks1Capturing =
           false;
 
         if (
@@ -221,7 +221,7 @@ XMLHttpRequest.prototype.send =
           
           window.dispatchEvent(
             new CustomEvent(
-              '__u1_3mf_err',
+              '__ks1_3mf_err',
               {
                 detail:
                   JSON.stringify({
@@ -285,7 +285,7 @@ XMLHttpRequest.prototype.send =
           // newer capture may have happened while we were awaiting it.
           if (
             captureGeneration !==
-              u1CaptureGeneration
+              ks1CaptureGeneration
           ) {
             return;
           }
@@ -302,7 +302,7 @@ XMLHttpRequest.prototype.send =
             );
 
           console.groupCollapsed(
-            '[U1 Download Capture] XMLHttpRequest · ' +
+            '[KS1 Download Capture] XMLHttpRequest · ' +
             `${this.status} · captured`
           );
 
@@ -329,14 +329,14 @@ XMLHttpRequest.prototype.send =
 
           console.log(
             'Result:',
-            'dispatched __u1_3mf'
+            'dispatched __ks1_3mf'
           );
 
           console.groupEnd();
 
           window.dispatchEvent(
             new CustomEvent(
-              '__u1_3mf',
+              '__ks1_3mf',
               {
                 detail:
                   JSON.stringify({
@@ -366,19 +366,19 @@ XMLHttpRequest.prototype.send =
         } catch (err) {
           if (
             captureGeneration !==
-              u1CaptureGeneration
+              ks1CaptureGeneration
           ) {
             return;
           }
 
           console.error(
-            '[U1 injected] XHR capture error:',
+            '[KS1 injected] XHR capture error:',
             err
           );
 
           window.dispatchEvent(
             new CustomEvent(
-              '__u1_3mf_err',
+              '__ks1_3mf_err',
               {
                 detail:
                   JSON.stringify({
@@ -424,7 +424,7 @@ XMLHttpRequest.prototype.send =
     );
 
     try {
-      return u1OriginalXhrSend.apply(
+      return ks1OriginalXhrSend.apply(
         this,
         arguments
       );
@@ -438,14 +438,14 @@ XMLHttpRequest.prototype.send =
     }
   };
 
-const U1_WINDOW_MESSAGE_SOURCE =
-  'makerworld-to-snapmaker-u1';
+const KS1_WINDOW_MESSAGE_SOURCE =
+  'makerworld-to-kobra-s1';
 
-function sendU1MainWorldReady() {
+function sendKS1MainWorldReady() {
   window.postMessage(
     {
       source:
-        U1_WINDOW_MESSAGE_SOURCE,
+        KS1_WINDOW_MESSAGE_SOURCE,
 
       action:
         'main-world-ready',
@@ -454,7 +454,7 @@ function sendU1MainWorldReady() {
   );
 }
 
-function sendU1PrinterSwiperRepairResult(
+function sendKS1PrinterSwiperRepairResult(
   wrapperId,
   result,
   details = {}
@@ -462,7 +462,7 @@ function sendU1PrinterSwiperRepairResult(
   window.postMessage(
     {
       source:
-        U1_WINDOW_MESSAGE_SOURCE,
+        KS1_WINDOW_MESSAGE_SOURCE,
 
       action:
         'printer-swiper-repair-result',
@@ -491,7 +491,7 @@ function sendU1PrinterSwiperRepairResult(
   );
 }
 
-function sendU1PrinterSwiperRefreshResult(
+function sendKS1PrinterSwiperRefreshResult(
   wrapperId,
   result,
   details = {}
@@ -499,7 +499,7 @@ function sendU1PrinterSwiperRefreshResult(
   window.postMessage(
     {
       source:
-        U1_WINDOW_MESSAGE_SOURCE,
+        KS1_WINDOW_MESSAGE_SOURCE,
 
       action:
         'printer-swiper-refresh-result',
@@ -528,7 +528,7 @@ function sendU1PrinterSwiperRefreshResult(
   );
 }
 
-function refreshU1PrinterSwiper(
+function refreshKS1PrinterSwiper(
   wrapperId
 ) {
   const normalizedId =
@@ -537,7 +537,7 @@ function refreshU1PrinterSwiper(
   // Only accept the short internal identifiers generated by content.js.
   // Never accept arbitrary selectors or executable values from page messages.
   if (
-    !/^u1-[a-z0-9-]{1,80}$/i.test(
+    !/^ks1-[a-z0-9-]{1,80}$/i.test(
       normalizedId
     )
   ) {
@@ -547,16 +547,16 @@ function refreshU1PrinterSwiper(
   const wrapper =
     Array.from(
       document.querySelectorAll(
-        '[data-u1-refresh-id]'
+        '[data-ks1-refresh-id]'
       )
     ).find(
       candidate =>
-        candidate.dataset.u1RefreshId ===
+        candidate.dataset.ks1RefreshId ===
         normalizedId
     );
 
   if (!wrapper) {
-    sendU1PrinterSwiperRefreshResult(
+    sendKS1PrinterSwiperRefreshResult(
       normalizedId,
       'wrapper-not-found'
     );
@@ -581,7 +581,7 @@ function refreshU1PrinterSwiper(
       new Event('resize')
     );
 
-    sendU1PrinterSwiperRefreshResult(
+    sendKS1PrinterSwiperRefreshResult(
       normalizedId,
       'resize-fallback-dispatched',
       {
@@ -631,19 +631,19 @@ function refreshU1PrinterSwiper(
   }
 
   try {
-    // Update immediately so the new U1 slide becomes part of Swiper's
+    // Update immediately so the new KS1 slide becomes part of Swiper's
     // internal slide collection.
     updateSwiper();
 
     // Update once more after the browser has processed the changed layout.
-    // This is especially important when the U1 slide creates the first
+    // This is especially important when the KS1 slide creates the first
     // horizontal overflow in an otherwise completely visible printer list.
     requestAnimationFrame(
       () => {
         try {
           updateSwiper();
 
-          sendU1PrinterSwiperRefreshResult(
+          sendKS1PrinterSwiperRefreshResult(
             normalizedId,
             'updated',
             {
@@ -656,11 +656,11 @@ function refreshU1PrinterSwiper(
           );
         } catch (error) {
           console.warn(
-            '[U1 injected] Delayed printer Swiper refresh failed:',
+            '[KS1 injected] Delayed printer Swiper refresh failed:',
             error
           );
 
-          sendU1PrinterSwiperRefreshResult(
+          sendKS1PrinterSwiperRefreshResult(
             normalizedId,
             'update-failed',
             {
@@ -681,11 +681,11 @@ function refreshU1PrinterSwiper(
     );
   } catch (error) {
     console.warn(
-      '[U1 injected] Printer Swiper refresh failed:',
+      '[KS1 injected] Printer Swiper refresh failed:',
       error
     );
 
-    sendU1PrinterSwiperRefreshResult(
+    sendKS1PrinterSwiperRefreshResult(
       normalizedId,
       'update-failed',
       {
@@ -704,14 +704,14 @@ function refreshU1PrinterSwiper(
   }
 }
 
-function repairU1PrinterSwiperVisibility(
+function repairKS1PrinterSwiperVisibility(
   wrapperId
 ) {
   const normalizedId =
     String(wrapperId || '');
 
   if (
-    !/^u1-[a-z0-9-]{1,80}$/i.test(
+    !/^ks1-[a-z0-9-]{1,80}$/i.test(
       normalizedId
     )
   ) {
@@ -721,16 +721,16 @@ function repairU1PrinterSwiperVisibility(
   const wrapper =
     Array.from(
       document.querySelectorAll(
-        '[data-u1-repair-id]'
+        '[data-ks1-repair-id]'
       )
     ).find(
       candidate =>
-        candidate.dataset.u1RepairId ===
+        candidate.dataset.ks1RepairId ===
         normalizedId
     );
 
   if (!wrapper) {
-    sendU1PrinterSwiperRepairResult(
+    sendKS1PrinterSwiperRepairResult(
       normalizedId,
       'wrapper-not-found'
     );
@@ -752,7 +752,7 @@ function repairU1PrinterSwiperVisibility(
       new Event('resize')
     );
 
-    sendU1PrinterSwiperRepairResult(
+    sendKS1PrinterSwiperRepairResult(
       normalizedId,
       'resize-fallback-dispatched',
       {
@@ -797,7 +797,7 @@ function repairU1PrinterSwiperVisibility(
     }
 
     if (slideToAvailable) {
-      // The U1 option is inserted directly after MakerWorld's first filter.
+      // The KS1 option is inserted directly after MakerWorld's first filter.
       // Move to the logical start only after content.js has confirmed that the
       // option exists but is outside the visible Swiper viewport.
       swiper.slideTo(
@@ -827,7 +827,7 @@ function repairU1PrinterSwiperVisibility(
         try {
           performRepair();
 
-          sendU1PrinterSwiperRepairResult(
+          sendKS1PrinterSwiperRepairResult(
             normalizedId,
             slideToAvailable
               ? 'repaired-to-start'
@@ -842,11 +842,11 @@ function repairU1PrinterSwiperVisibility(
           );
         } catch (error) {
           console.warn(
-            '[U1 injected] Delayed printer Swiper visibility repair failed:',
+            '[KS1 injected] Delayed printer Swiper visibility repair failed:',
             error
           );
 
-          sendU1PrinterSwiperRepairResult(
+          sendKS1PrinterSwiperRepairResult(
             normalizedId,
             'repair-failed',
             {
@@ -867,11 +867,11 @@ function repairU1PrinterSwiperVisibility(
     );
   } catch (error) {
     console.warn(
-      '[U1 injected] Printer Swiper visibility repair failed:',
+      '[KS1 injected] Printer Swiper visibility repair failed:',
       error
     );
 
-    sendU1PrinterSwiperRepairResult(
+    sendKS1PrinterSwiperRepairResult(
       normalizedId,
       'repair-failed',
       {
@@ -900,22 +900,22 @@ window.addEventListener('message', (e) => {
 
   if (
     e.data.source ===
-      U1_WINDOW_MESSAGE_SOURCE &&
+      KS1_WINDOW_MESSAGE_SOURCE &&
     e.data.action ===
       'main-world-status-request'
   ) {
-    sendU1MainWorldReady();
+    sendKS1MainWorldReady();
 
     return;
   }
 
   if (
     e.data.source ===
-      U1_WINDOW_MESSAGE_SOURCE &&
+      KS1_WINDOW_MESSAGE_SOURCE &&
     e.data.action ===
       'refresh-printer-swiper'
   ) {
-    refreshU1PrinterSwiper(
+    refreshKS1PrinterSwiper(
       e.data.wrapperId
     );
 
@@ -924,11 +924,11 @@ window.addEventListener('message', (e) => {
 
   if (
     e.data.source ===
-      U1_WINDOW_MESSAGE_SOURCE &&
+      KS1_WINDOW_MESSAGE_SOURCE &&
     e.data.action ===
       'repair-printer-swiper-visibility'
   ) {
-    repairU1PrinterSwiperVisibility(
+    repairKS1PrinterSwiperVisibility(
       e.data.wrapperId
     );
 
@@ -936,34 +936,34 @@ window.addEventListener('message', (e) => {
   }
 
   if (
-    e.data.__u1SetMode !== undefined
+    e.data.__ks1SetMode !== undefined
   ) {
     console.log(
-      '[U1 injected] mode set to',
-      e.data.__u1SetMode
+      '[KS1 injected] mode set to',
+      e.data.__ks1SetMode
     );
 
-    window.__u1ModeActive =
-      e.data.__u1SetMode;
+    window.__ks1ModeActive =
+      e.data.__ks1SetMode;
   }
 
-  if (e.data.__u1StartCapture) {
+  if (e.data.__ks1StartCapture) {
     console.log(
-      '[U1 injected] capture armed'
+      '[KS1 injected] capture armed'
     );
 
-    u1CaptureGeneration +=
+    ks1CaptureGeneration +=
       1;
 
-    window.__u1Capturing =
+    window.__ks1Capturing =
       true;
   }
 
-  if (e.data.__u1CancelCapture) {
-    u1CaptureGeneration +=
+  if (e.data.__ks1CancelCapture) {
+    ks1CaptureGeneration +=
       1;
 
-    window.__u1Capturing =
+    window.__ks1Capturing =
       false;
   }
 });
@@ -972,11 +972,11 @@ window.addEventListener('message', (e) => {
 //
 // content.js also actively requests this status, so the handshake works
 // regardless of which script finishes loading first.
-sendU1MainWorldReady();
+sendKS1MainWorldReady();
 
-// Block any native <a download> clicks while U1 mode is active
+// Block any native <a download> clicks while KS1 mode is active
 document.addEventListener('click', (e) => {
-  if (!window.__u1ModeActive) return;
+  if (!window.__ks1ModeActive) return;
   const a = e.target.closest('a[download]');
   if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true);

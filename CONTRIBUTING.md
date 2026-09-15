@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to **MakerWorld to Snapmaker U1**!
+Thank you for your interest in contributing to **MakerWorld to Anycubic Kobra S1**!
 
 Contributions of all kinds are welcome, including bug reports, feature suggestions, documentation improvements and pull requests.
 
@@ -37,7 +37,7 @@ Before submitting:
 The primary goals of this project are:
 
 * Preserve as much original project information as possible.
-* Generate native Snapmaker U1 compatible project files.
+* Generate native Anycubic Kobra S1 compatible project files.
 * Keep all conversion local inside the browser.
 * Maintain compatibility with current MakerWorld downloads.
 * Keep the converter simple, reliable and easy to maintain.

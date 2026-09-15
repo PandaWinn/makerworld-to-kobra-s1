@@ -26,7 +26,7 @@ if ($chromeManifest.version -ne $firefoxManifest.version) {
 
 $version = $chromeManifest.version
 
-Write-Host "Building MakerWorld to Snapmaker U1 v$version..."
+Write-Host "Building MakerWorld to Anycubic Kobra S1 v$version..."
 
 # Always recreate dist from scratch so no obsolete files survive.
 if (Test-Path $distDir) {
@@ -42,22 +42,22 @@ $sharedFiles = @(
     'background.js',
     'content.js',
     'converter.js',
-    'u1_error_report.js',
+    'ks1_error_report.js',
     'injected.js',
     'options.html',
     'options.js',
 
-    'u1_3mf_metadata.js',
-    'u1_bambu_parser.js',
-    'u1_compatibility.js',
-    'u1_custom_printer_profiles.js',
-    'u1_filament_merge.js',
-    'u1_model_parser.js',
-    'u1_profile_resolver.js',
-    'u1_project_builder.js',
-    'u1_project_merge.js',
-    'u1_project_parser.js',
-    'u1_project_report.js',
+    'ks1_3mf_metadata.js',
+    'ks1_bambu_parser.js',
+    'ks1_compatibility.js',
+    'ks1_custom_printer_profiles.js',
+    'ks1_filament_merge.js',
+    'ks1_model_parser.js',
+    'ks1_profile_resolver.js',
+    'ks1_project_builder.js',
+    'ks1_project_merge.js',
+    'ks1_project_parser.js',
+    'ks1_project_report.js',
 
     'README.md',
     'CHANGELOG.md',
@@ -110,22 +110,22 @@ $sourceFiles = @(
     'background.js',
     'content.js',
     'converter.js',
-    'u1_error_report.js',
+    'ks1_error_report.js',
     'injected.js',
     'options.html',
     'options.js',
 
-    'u1_3mf_metadata.js',
-    'u1_bambu_parser.js',
-    'u1_compatibility.js',
-    'u1_custom_printer_profiles.js',
-    'u1_filament_merge.js',
-    'u1_model_parser.js',
-    'u1_profile_resolver.js',
-    'u1_project_builder.js',
-    'u1_project_merge.js',
-    'u1_project_parser.js',
-    'u1_project_report.js',
+    'ks1_3mf_metadata.js',
+    'ks1_bambu_parser.js',
+    'ks1_compatibility.js',
+    'ks1_custom_printer_profiles.js',
+    'ks1_filament_merge.js',
+    'ks1_model_parser.js',
+    'ks1_profile_resolver.js',
+    'ks1_project_builder.js',
+    'ks1_project_merge.js',
+    'ks1_project_parser.js',
+    'ks1_project_report.js',
 
     'build.ps1',
     'BUILD.md',
@@ -162,9 +162,9 @@ foreach ($directory in $sourceDirectories) {
     Copy-Item $sourcePath $sourceDir -Recurse
 }
 
-$chromeZip = Join-Path $distDir "makerworld-to-snapmaker-u1-chrome-v$version.zip"
-$firefoxZip = Join-Path $distDir "makerworld-to-snapmaker-u1-firefox-v$version.zip"
-$sourceZip = Join-Path $distDir "makerworld-to-snapmaker-u1-source-v$version.zip"
+$chromeZip = Join-Path $distDir "makerworld-to-kobra-s1-chrome-v$version.zip"
+$firefoxZip = Join-Path $distDir "makerworld-to-kobra-s1-firefox-v$version.zip"
+$sourceZip = Join-Path $distDir "makerworld-to-kobra-s1-source-v$version.zip"
 
 # Create standards-compliant ZIP archives with forward slashes in entry names.
 # PowerShell's Compress-Archive may store Windows backslashes, which AMO rejects.

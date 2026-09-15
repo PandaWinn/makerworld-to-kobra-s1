@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 This project follows the principles of **Keep a Changelog** and uses **Semantic Versioning**.
 
+## [1.0.0] - 2026-09-15
+
+### Added
+- Retargeted the extension from Snapmaker U1 to the Anycubic Kobra S1
+  (Anycubic Slicer Next): Kobra S1 template pack with 11 genuine
+  Anycubic system-tuned process profiles (0.08mm–0.28mm, plus 0.20mm High
+  Quality), Kobra printer identity (250x250 bed), and fully rebranded UI,
+  icons, and packaging for Chrome and Firefox.
+
+### Changed
+- Converted files now carry the `-KobraS1` suffix and resolve to
+  `0.20mm Standard @Anycubic Kobra S1 0.4 nozzle` family presets.
+- Internal identifiers renamed from U1 to KS1 (no behavior change).
+
+### Removed
+- Parked the experimental one-click native-messaging bridge (download-only
+  for now). Design, code, and the Firefox temporary-ID finding are preserved
+  on branch `archive/slicer-bridge` and in `docs/one-click-open-bridge.md`.
+
 ## [1.6.2] - 2026-09-13
 
 ### Added

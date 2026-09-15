@@ -1,7 +1,7 @@
-// Filament parsing and final U1 filament normalization.
+// Filament parsing and final KS1 filament normalization.
 //
 // Preserves source project filaments when possible, creates Generic fallbacks
-// when needed, and ensures all filament arrays are valid for the U1 project.
+// when needed, and ensures all filament arrays are valid for the KS1 project.
 
 function normalizeColor(color) {
   if (!color) return '#000000';
@@ -51,8 +51,8 @@ function parseFilamentsFromProjectSettings(jsonStr) {
   }));
 }
 
-// U1 FILAMENT PRESET ANALYSIS
-function getGenericU1FilamentPreset(type) {
+// KS1 FILAMENT PRESET ANALYSIS
+function getGenericKS1FilamentPreset(type) {
   const t = String(type || 'PLA').toUpperCase();
 
   if (t.includes('PETG')) return { type: 'PETG', preset: 'Generic PETG' };
@@ -70,7 +70,7 @@ function isGenericFilamentName(name) {
   return n.includes('generic');
 }
 
-// U1 FINAL FILAMENT PASS
+// KS1 FINAL FILAMENT PASS
 function getFilamentDiffForSlot(settings, slotIndex) {
   const diff = settings?.different_settings_to_system;
 
@@ -259,7 +259,7 @@ function normalizePreservedProjectFilamentNames(combined, origSettings, preserve
   }
 }
 
-function applyFinalU1FilamentPass(
+function applyFinalKS1FilamentPass(
   combined,
   origSettings,
   sourceFilaments,
@@ -310,7 +310,7 @@ function applyFinalU1FilamentPass(
     'filament_nozzle_map',
     'filament_multi_colour',
 
-    // Bambu/Slicer metadata that SnOrca does not keep in its own rewritten U1 reference file.
+    // Bambu/Slicer metadata that Slicer Next does not keep in its own rewritten KS1 reference file.
     'filament_adhesiveness_category',
     'filament_change_length',
     'filament_change_length_nc',
@@ -395,7 +395,7 @@ function applyFinalU1FilamentPass(
   }
 
   function writeGenericSlot(index, sourceType = 'PLA', sourceColor = '#FFFFFF') {
-    const generic = getGenericU1FilamentPreset(sourceType);
+    const generic = getGenericKS1FilamentPreset(sourceType);
     const color = ensureRGBA(normalizeColor(sourceColor || '#FFFFFF'));
 
     for (const key of filamentKeys) {
@@ -502,7 +502,7 @@ function applyFinalU1FilamentPass(
   // Preserve original per-slot filament diffs when present.
   // If the source has no filament-specific diff but the filament is kept
   // as a Project Inside preset, synthesize the minimal filament diff so
-  // SnOrca continues to treat the slot as a project filament instead of
+  // Slicer Next continues to treat the slot as a project filament instead of
   // falling back to a system preset.
   for (let i = 0; i < targetFilamentCount; i++) {
     const sourceDiff = getFilamentDiffForSlot(origSettings, i);

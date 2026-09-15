@@ -1,4 +1,4 @@
-// MakerWorld → Snapmaker U1 conversion error report.
+// MakerWorld → Anycubic Kobra S1 conversion error report.
 //
 // This module contains only presentation and report formatting.
 //
@@ -10,7 +10,7 @@
 // Report data preparation
 // -----------------------------------------------------------------------------
 
-function formatU1DiagnosticDuration(value) {
+function formatKS1DiagnosticDuration(value) {
   if (!Number.isFinite(Number(value))) {
     return null;
   }
@@ -25,7 +25,7 @@ function formatU1DiagnosticDuration(value) {
   return `${milliseconds.toFixed(2)} ms`;
 }
 
-function formatU1ErrorStageRows(
+function formatKS1ErrorStageRows(
   diagnostics
 ) {
   const stages =
@@ -36,38 +36,38 @@ function formatU1ErrorStageRows(
   return stages
     .filter(stage =>
       stage?.status ===
-        U1_DIAGNOSTIC_STAGE_STATUS.OK ||
+        KS1_DIAGNOSTIC_STAGE_STATUS.OK ||
       stage?.status ===
-        U1_DIAGNOSTIC_STAGE_STATUS.FAILED
+        KS1_DIAGNOSTIC_STAGE_STATUS.FAILED
     )
     .map(stage => ({
       result:
         stage.status ===
-        U1_DIAGNOSTIC_STAGE_STATUS.OK
+        KS1_DIAGNOSTIC_STAGE_STATUS.OK
           ? 'OK'
           : 'FAIL',
 
       stage:
         stage.label ||
-        getU1DiagnosticStageLabel(
+        getKS1DiagnosticStageLabel(
           stage.id
         ),
 
       duration:
-        formatU1DiagnosticDuration(
+        formatKS1DiagnosticDuration(
           stage.durationMs
         ),
     }));
 }
 
-function buildU1ErrorReportObject(
+function buildKS1ErrorReportObject(
   rawError,
   fallbackDiagnostics = null
 ) {
   const error =
-    isU1ConversionError(rawError)
+    isKS1ConversionError(rawError)
       ? rawError
-      : prepareU1ErrorForReport(
+      : prepareKS1ErrorForReport(
           rawError,
           {
             diagnostics:
@@ -76,7 +76,7 @@ function buildU1ErrorReportObject(
         );
 
   const diagnostics =
-    getU1ErrorDiagnostics(
+    getKS1ErrorDiagnostics(
       error,
       fallbackDiagnostics
     ) || {};
@@ -85,16 +85,16 @@ function buildU1ErrorReportObject(
     diagnostics.error || {};
 
   const context = {
-    ...sanitizeU1DiagnosticContext(
+    ...sanitizeKS1DiagnosticContext(
       diagnosticError.context
     ),
 
-    ...sanitizeU1DiagnosticContext(
+    ...sanitizeKS1DiagnosticContext(
       error.context
     ),
     };
   const metadata =
-    sanitizeU1DiagnosticContext(
+    sanitizeKS1DiagnosticContext(
       diagnostics.metadata
     );
 
@@ -165,7 +165,7 @@ function buildU1ErrorReportObject(
       code:
         error.code ||
         diagnosticError.code ||
-        U1_ERROR_CODES.UNKNOWN,
+        KS1_ERROR_CODES.UNKNOWN,
 
       stage:
         error.stage ||
@@ -175,7 +175,7 @@ function buildU1ErrorReportObject(
 
       stageLabel:
         context.stageLabel ||
-        getU1DiagnosticStageLabel(
+        getKS1DiagnosticStageLabel(
           error.stage ||
           diagnosticError.stage ||
           diagnostics.currentStage ||
@@ -230,13 +230,13 @@ function buildU1ErrorReportObject(
         diagnostics.finishedAt || null,
 
       duration:
-        formatU1DiagnosticDuration(
+        formatKS1DiagnosticDuration(
           diagnostics.durationMs
         ),
     },
 
     progress:
-      formatU1ErrorStageRows(
+      formatKS1ErrorStageRows(
         diagnostics
       ),
 
@@ -278,18 +278,18 @@ function buildU1ErrorReportObject(
 // Copy-ready text report
 // -----------------------------------------------------------------------------
 
-function buildU1ErrorReportText(
+function buildKS1ErrorReportText(
   rawError,
   fallbackDiagnostics = null
 ) {
   const report =
-    buildU1ErrorReportObject(
+    buildKS1ErrorReportObject(
       rawError,
       fallbackDiagnostics
     );
 
   const lines = [
-    'MakerWorld to Snapmaker U1 — Error Report',
+    'MakerWorld to Anycubic Kobra S1 — Error Report',
     '',
     `Extension version: ${report.environment.converterVersion}`,
     `Browser: ${report.environment.browser}`,
@@ -489,12 +489,12 @@ function buildU1ErrorReportText(
 // Console presentation
 // -----------------------------------------------------------------------------
 
-function logU1ConversionError(
+function logKS1ConversionError(
   rawError,
   fallbackDiagnostics = null
 ) {
   const report =
-    buildU1ErrorReportObject(
+    buildKS1ErrorReportObject(
       rawError,
       fallbackDiagnostics
     );
@@ -503,7 +503,7 @@ function logU1ConversionError(
     report.summary.code;
 
   console.error(
-    `[U1 Extension] Conversion failed · ${code}`
+    `[KobraS1 Extension] Conversion failed · ${code}`
   );
 
   console.error(
@@ -512,12 +512,12 @@ function logU1ConversionError(
 
   if (report.summary.userAction) {
     console.info(
-      `[U1 Extension] Suggested action: ${report.summary.userAction}`
+      `[KobraS1 Extension] Suggested action: ${report.summary.userAction}`
     );
   }
 
   console.groupCollapsed(
-    `[U1 Error Report] ${code} · ${report.summary.stageLabel}`
+    `[KS1 Error Report] ${code} · ${report.summary.stageLabel}`
   );
 
   console.log(
@@ -608,13 +608,13 @@ function logU1ConversionError(
   console.groupEnd();
 
   const copyReadyReport =
-    buildU1ErrorReportText(
+    buildKS1ErrorReportText(
       rawError,
       fallbackDiagnostics
     );
 
   console.groupCollapsed(
-    `[U1 Copy-Ready Report] ${code}`
+    `[KS1 Copy-Ready Report] ${code}`
   );
 
   console.log(
